@@ -1,5 +1,4 @@
 import re
-from repositories import ClientRepository, TourRepository, BookingRepository, PaymentRepository
 from models import Client, Tour, Booking, Payment
 
 
@@ -63,8 +62,7 @@ class ValidateRegEx:
 
 
 class BaseController:
-    def __init__(self, db_path, table_name, repo):
-        self.db_path = db_path
+    def __init__(self, table_name, repo):
         self.table_name = table_name
         self.repo = repo
         self.validation = ValidateRegEx
@@ -85,8 +83,8 @@ class BaseController:
 
 
 class ClientController(BaseController):
-    def __init__(self, db_path):
-        super().__init__(db_path, "clients", ClientRepository(db_path))
+    def __init__(self, client_repo):
+        super().__init__("clients", client_repo)
 
     def get_all_clients(self):
         return self.repo.get_all()
@@ -103,7 +101,7 @@ class ClientController(BaseController):
     def delete_client(self, client_id):
         self.repo.delete(client_id)
 
-    def is_invalid_type(self, text, column, ids=True):
+    def is_invalid_type(self, text, column, ids=False):
         current_type = self.attr_types[column]
         if self.attr_names[column] == "phone":
             current_type = "PHONE"
@@ -122,8 +120,8 @@ class ClientController(BaseController):
 
 
 class TourController(BaseController):
-    def __init__(self, db_path):
-        super().__init__(db_path, "tours", TourRepository(db_path))
+    def __init__(self, tour_repo):
+        super().__init__("tours", tour_repo)
 
     def get_all_tours(self):
         return self.repo.get_all()
@@ -140,7 +138,7 @@ class TourController(BaseController):
     def delete_tour(self, tour_id):
         self.repo.delete(tour_id)
 
-    def is_invalid_type(self, text, column, ids=True):
+    def is_invalid_type(self, text, column, ids=False):
         current_type = self.attr_types[column]
         if "id" in self.attr_names[column] and ids:
             current_type = "ID"
@@ -157,8 +155,8 @@ class TourController(BaseController):
 
 
 class BookingController(BaseController):
-    def __init__(self, db_path):
-        super().__init__(db_path, "bookings", BookingRepository(db_path))
+    def __init__(self, booking_repo):
+        super().__init__("bookings", booking_repo)
 
     def get_all_bookings(self):
         return self.repo.get_all()
@@ -201,8 +199,8 @@ class BookingController(BaseController):
 
 
 class PaymentController(BaseController):
-    def __init__(self, db_path):
-        super().__init__(db_path, "payments", PaymentRepository(db_path))
+    def __init__(self, payment_repo):
+        super().__init__("payments", payment_repo)
 
     def get_all_payments(self):
         return self.repo.get_all()

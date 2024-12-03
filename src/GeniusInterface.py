@@ -2,6 +2,7 @@ import sys
 from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QLineEdit, QPushButton,
                                QTableWidget, QTableWidgetItem, QMessageBox, QTabWidget, QHBoxLayout, QDialog)
 from PySide6.QtCore import Qt
+from repositories import ClientRepository, TourRepository, BookingRepository, PaymentRepository
 from controllers import ClientController, TourController, BookingController, PaymentController
 from models import Client, Tour, Booking, Payment
 
@@ -173,8 +174,12 @@ class TableManager(QWidget):
 
     def edit_record(self):
         selected_row = self.table.currentRow()
+        selected_col = self.table.currentColumn()
         if selected_row == -1:
             QMessageBox.warning(self, "Error", "Please select a record to edit.")
+            return
+        if selected_col == 0:
+            QMessageBox.warning(self, "Error", "You selected a primary key")
             return
 
         values = []
@@ -230,14 +235,15 @@ class TableManager(QWidget):
 
 
 class AdminInterface(QMainWindow):
-    def __init__(self, db_path):
+    def __init__(self, clients_controller, tours_controller, bookings_controller, payments_controller):
         super().__init__()
         self.setWindowTitle("Admin Interface")
         self.setGeometry(100, 100, 800, 600)
-        self.db_path = db_path
-        self.init_ui()
+        self.client_controller = clients_controller
+        self.tour_controller = tours_controller
+        self.booking_controller = bookings_controller
+        self.payment_controller = payments_controller
 
-    def init_ui(self):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         layout = QVBoxLayout(self.central_widget)
@@ -245,35 +251,23 @@ class AdminInterface(QMainWindow):
         self.tabs = QTabWidget()
         layout.addWidget(self.tabs)
 
-        self.init_tab("clients")
-        self.init_tab("tours")
-        self.init_tab("bookings")
-        self.init_tab("payments")
+        self.init_tab("clients", self.client_controller)
+        self.init_tab("tours", self.tour_controller)
+        self.init_tab("bookings", self.booking_controller)
+        self.init_tab("payments", self.payment_controller)
 
-    def init_tab(self, tab_name):
+    def init_tab(self, tab_name, controller):
         tab = QWidget()
         self.tabs.addTab(tab, tab_name)
         layout = QVBoxLayout(tab)
-
-        controller = None
-        if tab_name == "clients":
-            controller = ClientController(self.db_path)
-        elif tab_name == "tours":
-            controller = TourController(self.db_path)
-        elif tab_name == "bookings":
-            controller = BookingController(self.db_path)
-        elif tab_name == "payments":
-            controller = PaymentController(self.db_path)
 
         table_manager = TableManager(controller)
         layout.addWidget(table_manager)
 
     def closeEvent(self, event):
-        for index in range(self.tabs.count()):
-            tab = self.tabs.widget(index)
-            table_manager = tab.findChild(TableManager)
-            if table_manager:
-                table_manager.controller.repo.close()
+        controllers = [self.client_controller, self.tour_controller, self.booking_controller, self.payment_controller]
+        for controller in controllers:
+            controller.repo.close()
         event.accept()
 
     def update_all_tables(self):
@@ -285,7 +279,18 @@ class AdminInterface(QMainWindow):
 
 
 if __name__ == "__main__":
+    db_path = "../databases/TravelAgency.db"
+    client_repo = ClientRepository(db_path)
+    tour_repo = TourRepository(db_path)
+    booking_repo = BookingRepository(db_path)
+    payment_repo = PaymentRepository(db_path)
+
+    client_controller = ClientController(client_repo)
+    tour_controller = TourController(tour_repo)
+    booking_controller = BookingController(booking_repo)
+    payment_controller = PaymentController(payment_repo)
+
     app = QApplication(sys.argv)
-    window = AdminInterface("../databases/TravelAgency.db")
+    window = AdminInterface(client_controller, tour_controller, booking_controller, payment_controller)
     window.show()
     sys.exit(app.exec())
