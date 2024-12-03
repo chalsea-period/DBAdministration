@@ -88,8 +88,12 @@ class ClientController(BaseController):
         res = self.validation.validate(text, current_type)
         return res
 
-    def filter_clients(self, **kwargs):
-        return self.repo.filter_by(self.table_name, Client, **kwargs)
+    def filter_clients(self, order_by=None, order_direction="ASC", **kwargs):
+        if not order_by:
+            order_by = self.get_attr_names()[0]
+        if not kwargs:
+            return self.repo.filter_by(self.table_name, Client, order_by, order_direction)
+        return self.repo.filter_by(self.table_name, Client, order_by, order_direction, **kwargs)
 
 
 class TourController(BaseController):
@@ -119,8 +123,12 @@ class TourController(BaseController):
         res = self.validation.validate(text, current_type)
         return res
 
-    def filter_tours(self, **kwargs):
-        return self.repo.filter_by(self.table_name, Tour, **kwargs)
+    def filter_tours(self, order_by=None, order_direction="ASC", **kwargs):
+        if not order_by:
+            order_by = self.get_attr_names()[0]
+        if not kwargs:
+            return self.repo.filter_by(self.table_name, Tour, order_by, order_direction)
+        return self.repo.filter_by(self.table_name, Tour, order_by, order_direction, **kwargs)
 
 
 class BookingController(BaseController):
@@ -159,8 +167,12 @@ class BookingController(BaseController):
         res = self.validation.validate(text, current_type)
         return res
 
-    def filter_bookings(self, **kwargs):
-        return self.repo.filter_by(self.table_name, Booking, **kwargs)
+    def filter_bookings(self, order_by=None, order_direction="ASC", **kwargs):
+        if not order_by:
+            order_by = self.get_attr_names()[0]
+        if not kwargs:
+            return self.repo.filter_by(self.table_name, Booking, order_by, order_direction)
+        return self.repo.filter_by(self.table_name, Booking, order_by, order_direction, **kwargs)
 
 
 class PaymentController(BaseController):
@@ -192,5 +204,9 @@ class PaymentController(BaseController):
         res = self.validation.validate(text, current_type)
         return res
 
-    def filter_payments(self, **kwargs):
-        return self.repo.filter_by(self.table_name, Payment, **kwargs)
+    def filter_payments(self, order_by=None, order_direction="ASC", **kwargs):
+        if not order_by:
+            order_by = self.get_attr_names()[0]
+        if not kwargs:
+            return self.repo.filter_by(self.table_name, Payment, order_by, order_direction)
+        return self.repo.filter_by(self.table_name, Payment, order_by, order_direction, **kwargs)

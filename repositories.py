@@ -30,19 +30,39 @@ class BaseRepository:
             types_list.append(row[2])
         return types_list
 
-    def filter_by(self, table_name, model_class, order_by=None, order_direction='ASC', **kwargs):
-        query = f"SELECT * FROM {table_name} WHERE "
+    def __get_condition(self, **kwargs):
+        query = " WHERE "
         conditions = []
         params = []
         for key, value in kwargs.items():
-            conditions.append(f"{key}=?")
-            params.append(value)
+            sign = value[0]
+            conditions.append(f"{key}{sign}?")
+            params.append(value[1:])
         query += " AND ".join(conditions)
+        return query, params
+
+    def __get_order_by_part_query(self, order_by, order_direction):
+        query = " ORDER BY "
+        order = [attr.strip() for attr in order_by.split(',')]
+        direction = [forward.strip() for forward in order_direction.split(',')]
+        for i in range(len(order)):
+            query += order[i] + " " + direction[i]
+            if i != len(order) - 1:
+                query += ", "
+        return query
+
+    def filter_by(self, table_name, model_class, order_by, order_direction, **kwargs):
+        query = f"SELECT * FROM {table_name}"
+        params = None
+        if kwargs:
+            cond_query, params = self.__get_condition(**kwargs)
+            query += cond_query
 
         if order_by:
-            query += f" ORDER BY {order_by} {order_direction}"
+            query += self.__get_order_by_part_query(order_by, order_direction)
 
-        self.cursor.execute(query, params)
+        print(query)
+        self.cursor.execute(query, params if params else ())
         rows = self.cursor.fetchall()
         return [model_class(*row) for row in rows]
 

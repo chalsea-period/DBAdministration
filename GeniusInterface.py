@@ -9,18 +9,40 @@ from models import Client, Tour, Booking, Payment
 class FilterDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Search")
+        self.setWindowTitle("Filter")
+        self.setGeometry(500, 300, 250, 200)
         self.layout = QVBoxLayout(self)
 
-        self.filter_input = QLineEdit(self)
-        self.layout.addWidget(self.filter_input)
+        self.condition_label = QLabel("Filter value (default=None)")
+        self.layout.addWidget(self.condition_label)
+        self.condition_input = QLineEdit(self)
+        self.condition_input.setPlaceholderText(">Value_with_type_of_selected_attribute")
+        self.layout.addWidget(self.condition_input)
+
+        self.order_label = QLabel("Order attributes (default=selected)")
+        self.layout.addWidget(self.order_label)
+        self.order_input = QLineEdit(self)
+        self.order_input.setPlaceholderText("attribute_name")
+        self.layout.addWidget(self.order_input)
+
+        self.direction_label = QLabel("Order direction (default=ascended)")
+        self.layout.addWidget(self.direction_label)
+        self.direction_input = QLineEdit(self)
+        self.direction_input.setPlaceholderText("ASC|DESC")
+        self.layout.addWidget(self.direction_input)
 
         self.ok_button = QPushButton("OK", self)
         self.ok_button.clicked.connect(self.accept)
         self.layout.addWidget(self.ok_button)
 
     def get_filter_value(self):
-        return self.filter_input.text()
+        return self.condition_input.text()
+
+    def get_direction_value(self):
+        return self.direction_input.text()
+
+    def get_attribute_value(self):
+        return self.order_input.text()
 
 
 class TableManager(QWidget):
@@ -121,19 +143,25 @@ class TableManager(QWidget):
         dialog = FilterDialog(self)
         if dialog.exec() == QDialog.Accepted:
             filter_value = dialog.get_filter_value()
-            if filter_value:
-                self.filter_records(self.columns[index], filter_value)
+            direction_value = dialog.get_direction_value()
+            attribute_value = dialog.get_attribute_value()
+            self.filter_records(self.columns[index], filter_value, direction_value, attribute_value)
 
-    def filter_records(self, column, value):
+    def filter_records(self, column, value, direction, attribute):
         records = []
+        kwargs = {column: value} if value else {}
+        print(attribute)
+        if not attribute:
+            print(attribute)
+            attribute = column
         if isinstance(self.controller, ClientController):
-            records = self.controller.filter_clients(**{column: value})
+            records = self.controller.filter_clients(order_by=attribute, order_direction=direction, **kwargs)
         elif isinstance(self.controller, TourController):
-            records = self.controller.filter_tours(**{column: value})
+            records = self.controller.filter_tours(order_by=attribute, order_direction=direction, **kwargs)
         elif isinstance(self.controller, BookingController):
-            records = self.controller.filter_bookings(**{column: value})
+            records = self.controller.filter_bookings(order_by=attribute, order_direction=direction, **kwargs)
         elif isinstance(self.controller, PaymentController):
-            records = self.controller.filter_payments(**{column: value})
+            records = self.controller.filter_payments(order_by=attribute, order_direction=direction, **kwargs)
 
         self.table.setRowCount(len(records))
         for row, record in enumerate(records):
