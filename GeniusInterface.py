@@ -150,10 +150,12 @@ class TableManager(QWidget):
     def filter_records(self, column, value, direction, attribute):
         records = []
         kwargs = {column: value} if value else {}
-        print(attribute)
         if not attribute:
-            print(attribute)
             attribute = column
+        if not self.controller.validate_filter(value, attribute, direction):
+            QMessageBox.warning(self, "Error", "Incorrect input")
+            return
+
         if isinstance(self.controller, ClientController):
             records = self.controller.filter_clients(order_by=attribute, order_direction=direction, **kwargs)
         elif isinstance(self.controller, TourController):

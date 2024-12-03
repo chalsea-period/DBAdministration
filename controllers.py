@@ -26,7 +26,7 @@ class ValidateRegEx:
         return False
 
     @staticmethod
-    def validate(text, type):
+    def is_invalid(text, type):
         if type == "INTEGER":
             return not ValidateRegEx.is_integer(text)
         elif type == "DATE":
@@ -38,6 +38,28 @@ class ValidateRegEx:
         elif type == "ID":
             return True
         return False
+
+    @staticmethod
+    def is_where(text):
+        where_pattern = re.compile(r'^[><=].+$')
+        return bool(where_pattern.match(text))
+
+    @staticmethod
+    def is_attribute(text, attributes):
+        lst = [s.strip() for s in text.split(',')]
+        return all(attr in attributes for attr in lst), len(lst)
+
+    @staticmethod
+    def is_direction(text):
+        lst = [s.strip() for s in text.split(',')]
+        return all(direct in ["ASC", "DESC"] for direct in lst), len(lst)
+
+    @staticmethod
+    def validate_filter_data(condition, attribute, attributes, direction):
+        check1 = ValidateRegEx.is_where(condition)
+        check2, len1 = ValidateRegEx.is_attribute(attribute, attributes)
+        check3, len2 = ValidateRegEx.is_direction(direction)
+        return check1 and check2 and check3 and len1 == len2
 
 
 class BaseController:
@@ -57,6 +79,9 @@ class BaseController:
 
     def get_columns_count(self):
         return len(self.attr_names)
+
+    def validate_filter(self, condition, attribute, direction):
+        return self.validation.validate_filter_data(condition, attribute, self.get_attr_names(), direction)
 
 
 class ClientController(BaseController):
@@ -85,7 +110,7 @@ class ClientController(BaseController):
         elif "id" in self.attr_names[column] and ids:
             current_type = "ID"
 
-        res = self.validation.validate(text, current_type)
+        res = self.validation.is_invalid(text, current_type)
         return res
 
     def filter_clients(self, order_by=None, order_direction="ASC", **kwargs):
@@ -120,7 +145,7 @@ class TourController(BaseController):
         if "id" in self.attr_names[column] and ids:
             current_type = "ID"
 
-        res = self.validation.validate(text, current_type)
+        res = self.validation.is_invalid(text, current_type)
         return res
 
     def filter_tours(self, order_by=None, order_direction="ASC", **kwargs):
@@ -159,12 +184,12 @@ class BookingController(BaseController):
             current_type = "STATUS"
         elif "id" in self.attr_names[column] and ids:
             current_type = "ID"
-        elif self.attr_names[column] == "client_id" and not self.validation.validate(text, current_type):
+        elif self.attr_names[column] == "client_id" and not self.validation.is_invalid(text, current_type):
             return int(text) not in self.repo.get_clients_id_list()
-        elif self.attr_names[column] == "tour_id" and not self.validation.validate(text, current_type):
+        elif self.attr_names[column] == "tour_id" and not self.validation.is_invalid(text, current_type):
             return int(text) not in self.repo.get_tours_id_list()
 
-        res = self.validation.validate(text, current_type)
+        res = self.validation.is_invalid(text, current_type)
         return res
 
     def filter_bookings(self, order_by=None, order_direction="ASC", **kwargs):
@@ -198,10 +223,10 @@ class PaymentController(BaseController):
         current_type = self.attr_types[column]
         if "id" in self.attr_names[column] and ids:
             current_type = "ID"
-        elif self.attr_names[column] == "booking_id" and not self.validation.validate(text, current_type):
+        elif self.attr_names[column] == "booking_id" and not self.validation.is_invalid(text, current_type):
             return int(text) not in self.repo.get_bookings_id_list()
 
-        res = self.validation.validate(text, current_type)
+        res = self.validation.is_invalid(text, current_type)
         return res
 
     def filter_payments(self, order_by=None, order_direction="ASC", **kwargs):
