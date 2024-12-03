@@ -14,6 +14,14 @@ class BaseRepository:
     def close(self):
         self.conn.close()
 
+    def get_attr_names(self, table_name):
+        self.cursor.execute(f'PRAGMA table_info("{table_name}")')
+        rows = self.cursor.fetchall()
+        types_list = []
+        for row in rows:
+            types_list.append(row[1])
+        return types_list
+
     def get_attr_types(self, table_name):
         self.cursor.execute(f'PRAGMA table_info("{table_name}")')
         rows = self.cursor.fetchall()
@@ -21,6 +29,22 @@ class BaseRepository:
         for row in rows:
             types_list.append(row[2])
         return types_list
+
+    def filter_by(self, table_name, model_class, order_by=None, order_direction='ASC', **kwargs):
+        query = f"SELECT * FROM {table_name} WHERE "
+        conditions = []
+        params = []
+        for key, value in kwargs.items():
+            conditions.append(f"{key}=?")
+            params.append(value)
+        query += " AND ".join(conditions)
+
+        if order_by:
+            query += f" ORDER BY {order_by} {order_direction}"
+
+        self.cursor.execute(query, params)
+        rows = self.cursor.fetchall()
+        return [model_class(*row) for row in rows]
 
 
 class ClientRepository(BaseRepository):
@@ -105,6 +129,23 @@ class BookingRepository(BaseRepository):
         row = self.cursor.fetchone()
         return Booking(*row) if row else None
 
+    def get_price_by_tour_id(self, tour_id):
+        self.cursor.execute("SELECT * FROM tours WHERE tour_id=?", (tour_id,))
+        row = self.cursor.fetchone()
+        column_names = [description[0] for description in self.cursor.description]
+        row_dict = dict(zip(column_names, row))
+        return row_dict.get('price')
+
+    def get_clients_id_list(self):
+        self.cursor.execute("SELECT client_id FROM clients")
+        rows = self.cursor.fetchall()
+        return [row[0] for row in rows]
+
+    def get_tours_id_list(self):
+        self.cursor.execute("SELECT tour_id FROM tours")
+        rows = self.cursor.fetchall()
+        return [row[0] for row in rows]
+
     def add(self, booking):
         self.cursor.execute("""
         INSERT INTO bookings (client_id, tour_id, booking_date, people_number, total_price, status)
@@ -138,6 +179,11 @@ class PaymentRepository(BaseRepository):
         self.cursor.execute("SELECT * FROM payments WHERE payment_id=?", (payment_id,))
         row = self.cursor.fetchone()
         return Payment(*row) if row else None
+
+    def get_bookings_id_list(self):
+        self.cursor.execute("SELECT booking_id FROM bookings")
+        rows = self.cursor.fetchall()
+        return [row[0] for row in rows]
 
     def add(self, payment):
         self.cursor.execute("""

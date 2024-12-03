@@ -1,35 +1,33 @@
 import sys
-import re
 from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel, QLineEdit, QPushButton,
-                               QTableWidget, QTableWidgetItem, QMessageBox, QTabWidget, QHBoxLayout)
+                               QTableWidget, QTableWidgetItem, QMessageBox, QTabWidget, QHBoxLayout, QDialog)
 from PySide6.QtCore import Qt
 from controllers import ClientController, TourController, BookingController, PaymentController
 from models import Client, Tour, Booking, Payment
 
-"""
-Нужны проверки на все типы (чтобы телефон обязательно был телефон и т.д.)
-Наверное нужно сделать, чтобы некоторые типы можно было не вводить 
-Возможно стоит сделать некоторые пункты по-умолчанию
-Визуализация БД
-Фильтрация
-"""
 
+class FilterDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Search")
+        self.layout = QVBoxLayout(self)
 
-def is_integer(text):
-    integer_pattern = re.compile(r'^\d+$')
-    return bool(integer_pattern.match(text))
+        self.filter_input = QLineEdit(self)
+        self.layout.addWidget(self.filter_input)
 
+        self.ok_button = QPushButton("OK", self)
+        self.ok_button.clicked.connect(self.accept)
+        self.layout.addWidget(self.ok_button)
 
-def is_date(text):
-    date_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}$')
-    return bool(date_pattern.match(text))
+    def get_filter_value(self):
+        return self.filter_input.text()
 
 
 class TableManager(QWidget):
-    def __init__(self, controller, columns, parent=None):
+    def __init__(self, controller, parent=None):
         super().__init__(parent)
         self.controller = controller
-        self.columns = columns
+        self.columns = controller.get_attr_names()
         self.init_ui()
 
     def init_ui(self):
@@ -53,8 +51,9 @@ class TableManager(QWidget):
 
         # Таблица для отображения записей
         self.table = QTableWidget()
-        self.table.setColumnCount(len(self.columns))
-        self.table.setHorizontalHeaderLabels(self.columns)
+        self.table.setColumnCount(self.controller.get_columns_count())
+        self.table.setHorizontalHeaderLabels(self.controller.get_attr_names())
+        self.table.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
         layout.addWidget(self.table)
 
         # Кнопки для редактирования и удаления
@@ -73,7 +72,8 @@ class TableManager(QWidget):
 
     def add_record(self):
         values = [self.inputs[column].text() for column in self.columns[1:]]
-        if all(values):
+        valids = [not self.controller.is_invalid_type(value, col, ids=False) for col, value in enumerate(["0"] + values)][1:]
+        if all(valids):
             if isinstance(self.controller, ClientController):
                 client = Client(None, *values)
                 self.controller.add_client(client)
@@ -82,6 +82,9 @@ class TableManager(QWidget):
                 self.controller.add_tour(tour)
             elif isinstance(self.controller, BookingController):
                 booking = Booking(None, *values)
+                if booking.total_price != self.controller.total_price_counting(booking):
+                    QMessageBox.warning(self, "Error", "Wrong total price.")
+                    return
                 self.controller.add_booking(booking)
             elif isinstance(self.controller, PaymentController):
                 payment = Payment(None, *values)
@@ -89,9 +92,9 @@ class TableManager(QWidget):
 
             self.load_records()
             self.clear_inputs()
-            QMessageBox.information(self, "Success", f"{self.table_name.capitalize()} added successfully!")
+            QMessageBox.information(self, "Success", f"{self.controller.table_name} added successfully!")
         else:
-            QMessageBox.warning(self, "Error", "Please fill in all required fields.")
+            QMessageBox.warning(self, "Error", "Wrong input data.")
 
     def load_records(self):
         records = []
@@ -114,6 +117,30 @@ class TableManager(QWidget):
         for input_field in self.inputs.values():
             input_field.clear()
 
+    def on_header_clicked(self, index):
+        dialog = FilterDialog(self)
+        if dialog.exec() == QDialog.Accepted:
+            filter_value = dialog.get_filter_value()
+            if filter_value:
+                self.filter_records(self.columns[index], filter_value)
+
+    def filter_records(self, column, value):
+        records = []
+        if isinstance(self.controller, ClientController):
+            records = self.controller.filter_clients(**{column: value})
+        elif isinstance(self.controller, TourController):
+            records = self.controller.filter_tours(**{column: value})
+        elif isinstance(self.controller, BookingController):
+            records = self.controller.filter_bookings(**{column: value})
+        elif isinstance(self.controller, PaymentController):
+            records = self.controller.filter_payments(**{column: value})
+
+        self.table.setRowCount(len(records))
+        for row, record in enumerate(records):
+            for col, value in enumerate(record.__dict__.values()):
+                item = QTableWidgetItem(str(value))
+                self.table.setItem(row, col, item)
+
     def edit_record(self):
         selected_row = self.table.currentRow()
         if selected_row == -1:
@@ -121,16 +148,12 @@ class TableManager(QWidget):
             return
 
         values = []
-        # types_list = get_attr_types(self.cursor, self.table_name)
         for col in range(self.table.columnCount()):
             item = self.table.item(selected_row, col)
-
-            # if (types_list[col] == "INTEGER" and not is_integer(item.text())) or \
-            #         (types_list[col] == "DATE" and not is_date(item.text())):
-            #     QMessageBox.warning(self, "Error", "Incorrect type")
-            #     self.load_records()
-            #     return
-
+            if self.controller.is_invalid_type(item.text(), col):
+                QMessageBox.warning(self, "Error", "Incorrect type")
+                self.load_records()
+                return
             values.append(item.text())
 
         # Первый столбец - это идентификатор записи
@@ -177,11 +200,11 @@ class TableManager(QWidget):
 
 
 class AdminInterface(QMainWindow):
-    def __init__(self):
+    def __init__(self, db_path):
         super().__init__()
         self.setWindowTitle("Admin Interface")
         self.setGeometry(100, 100, 800, 600)
-        self.db_path = "TravelAgency.db"
+        self.db_path = db_path
         self.init_ui()
 
     def init_ui(self):
@@ -192,14 +215,12 @@ class AdminInterface(QMainWindow):
         self.tabs = QTabWidget()
         layout.addWidget(self.tabs)
 
-        self.init_tab("clients", ["client_id", "name", "email", "phone", "address", "date_of_birth"])
-        self.init_tab("tours", ["tour_id", "title", "city_of_departure", "destination", "start_date",
-                                "end_date", "price", "available_place"])
-        self.init_tab("bookings",
-                      ["booking_id", "client_id", "tour_id", "booking_date", "people_number", "total_price", "status"])
-        self.init_tab("payments", ["payment_id", "booking_id", "payment_date", "amount", "payment_method"])
+        self.init_tab("clients")
+        self.init_tab("tours")
+        self.init_tab("bookings")
+        self.init_tab("payments")
 
-    def init_tab(self, tab_name, columns):
+    def init_tab(self, tab_name):
         tab = QWidget()
         self.tabs.addTab(tab, tab_name)
         layout = QVBoxLayout(tab)
@@ -214,7 +235,7 @@ class AdminInterface(QMainWindow):
         elif tab_name == "payments":
             controller = PaymentController(self.db_path)
 
-        table_manager = TableManager(controller, columns)
+        table_manager = TableManager(controller)
         layout.addWidget(table_manager)
 
     def closeEvent(self, event):
@@ -235,6 +256,6 @@ class AdminInterface(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = AdminInterface()
+    window = AdminInterface("TravelAgency.db")
     window.show()
     sys.exit(app.exec())

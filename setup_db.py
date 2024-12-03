@@ -19,7 +19,7 @@ def recreate_all(db_path):
     CREATE TABLE IF NOT EXISTS clients (
         client_id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
-        email TEXT,
+        email TEXT NOT NULL,
         phone TEXT NOT NULL,
         address TEXT NOT NULL,
         date_of_birth DATE NOT NULL
@@ -30,9 +30,9 @@ def recreate_all(db_path):
     CREATE TABLE IF NOT EXISTS tours (
         tour_id INTEGER PRIMARY KEY,
         title TEXT NOT NULL,
-        city_of_departure TEXT,
+        city_of_departure TEXT NOT NULL,
         destination TEXT NOT NULL,
-        start_date DATE,
+        start_date DATE NOT NULL,
         end_date DATE NOT NULL,
         price INTEGER NOT NULL,
         available_place INTEGER NOT NULL
@@ -46,8 +46,8 @@ def recreate_all(db_path):
         tour_id INTEGER NOT NULL,
         booking_date DATE NOT NULL,
         people_number INTEGER NOT NULL,
-        total_price INTEGER,
-        status TEXT,
+        total_price INTEGER NOT NULL,
+        status TEXT NOT NULL,
         CONSTRAINT fk_client FOREIGN KEY (client_id) REFERENCES clients(client_id) ON DELETE CASCADE,
         CONSTRAINT fk_tour FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE,
         CONSTRAINT chk_status CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed'))
@@ -84,16 +84,16 @@ def insert_initial_data(db_path):
         tour_repo.add(tour)
 
     clients = [
-        Client(None, 'John Doe', 'john.doe@example.com', '+1234567890', '123 Main St, New York', '1980-05-15'),
-        Client(None, 'Jane Smith', 'jane.smith@example.com', '+1234567891', '456 Elm St, Los Angeles', '1985-08-22'),
-        Client(None, 'Alice Johnson', 'alice.johnson@example.com', '+1234567892', '789 Oak St, Chicago', '1990-11-30'),
-        Client(None, 'Bob Brown', 'bob.brown@example.com', '+1234567893', '321 Pine St, Houston', '1975-03-10'),
-        Client(None, 'Charlie Davis', 'charlie.davis@example.com', '+1234567894', '654 Maple St, Phoenix', '1982-07-25'),
-        Client(None, 'Diana White', 'diana.white@example.com', '+1234567895', '987 Cedar St, Philadelphia', '1995-09-18'),
-        Client(None, 'Edward Green', 'edward.green@example.com', '+1234567896', '159 Birch St, San Antonio', '1978-12-05'),
-        Client(None, 'Fiona Black', 'fiona.black@example.com', '+1234567897', '753 Walnut St, San Diego', '1987-04-12'),
-        Client(None, 'George Grey', 'george.grey@example.com', '+1234567898', '357 Chestnut St, Dallas', '1992-06-20'),
-        Client(None, 'Helen Yellow', 'helen.yellow@example.com', '+1234567899', '246 Spruce St, San Jose', '1984-10-08')
+        Client(None, 'John Doe', 'john.doe@example.com', '+72345678900', '123 Main St, New York', '1980-05-15'),
+        Client(None, 'Jane Smith', 'jane.smith@example.com', '+72345678910', '456 Elm St, Los Angeles', '1985-08-22'),
+        Client(None, 'Alice Johnson', 'alice.johnson@example.com', '+72345678920', '789 Oak St, Chicago', '1990-11-30'),
+        Client(None, 'Bob Brown', 'bob.brown@example.com', '+72345678930', '321 Pine St, Houston', '1975-03-10'),
+        Client(None, 'Charlie Davis', 'charlie.davis@example.com', '+72345678940', '654 Maple St, Phoenix', '1982-07-25'),
+        Client(None, 'Diana White', 'diana.white@example.com', '+72345678950', '987 Cedar St, Philadelphia', '1995-09-18'),
+        Client(None, 'Edward Green', 'edward.green@example.com', '+72345678960', '159 Birch St, San Antonio', '1978-12-05'),
+        Client(None, 'Fiona Black', 'fiona.black@example.com', '+72345678970', '753 Walnut St, San Diego', '1987-04-12'),
+        Client(None, 'George Grey', 'george.grey@example.com', '+72345678980', '357 Chestnut St, Dallas', '1992-06-20'),
+        Client(None, 'Helen Yellow', 'helen.yellow@example.com', '+72345678990', '246 Spruce St, San Jose', '1984-10-08')
     ]
     for client in clients:
         client_repo.add(client)
