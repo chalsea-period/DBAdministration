@@ -130,5 +130,5 @@ def insert_initial_data(db_path):
 
 
 if __name__ == '__main__':
-    recreate_all("TravelAgency.db")
-    insert_initial_data("TravelAgency.db")
+    recreate_all("../databases/TravelAgency.db")
+    insert_initial_data("../databases/TravelAgency.db")

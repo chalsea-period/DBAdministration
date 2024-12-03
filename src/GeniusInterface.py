@@ -286,6 +286,6 @@ class AdminInterface(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = AdminInterface("TravelAgency.db")
+    window = AdminInterface("../databases/TravelAgency.db")
     window.show()
     sys.exit(app.exec())
