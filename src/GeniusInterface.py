@@ -97,22 +97,13 @@ class TableManager(QWidget):
         values = [self.inputs[column].text() for column in self.columns[1:]]
         valids = [not self.controller.is_invalid_type(value, col, ids=False) for col, value in enumerate(["0"] + values)][1:]
         if all(valids):
-            if isinstance(self.controller, ClientController):
-                client = Client(None, *values)
-                self.controller.add_client(client)
-            elif isinstance(self.controller, TourController):
-                tour = Tour(None, *values)
-                self.controller.add_tour(tour)
-            elif isinstance(self.controller, BookingController):
-                booking = Booking(None, *values)
-                if booking.total_price != self.controller.total_price_counting(booking):
-                    QMessageBox.warning(self, "Error", "Wrong total price.")
+            model = self.controller.get_model(None, *values)
+            if isinstance(model, Booking):
+                if model.total_price != self.controller.calculate_total_price(model):
+                    QMessageBox.warning(self, "Error", "Incorrect total price.")
                     return
-                self.controller.add_booking(booking)
-            elif isinstance(self.controller, PaymentController):
-                payment = Payment(None, *values)
-                self.controller.add_payment(payment)
 
+            self.controller.add(model)
             self.load_records()
             self.clear_inputs()
             QMessageBox.information(self, "Success", f"{self.controller.table_name} added successfully!")
@@ -120,16 +111,7 @@ class TableManager(QWidget):
             QMessageBox.warning(self, "Error", "Wrong input data.")
 
     def load_records(self):
-        records = []
-        if isinstance(self.controller, ClientController):
-            records = self.controller.get_all_clients()
-        elif isinstance(self.controller, TourController):
-            records = self.controller.get_all_tours()
-        elif isinstance(self.controller, BookingController):
-            records = self.controller.get_all_bookings()
-        elif isinstance(self.controller, PaymentController):
-            records = self.controller.get_all_payments()
-
+        records = self.controller.get_all()
         self.table.setRowCount(len(records))
         for row, record in enumerate(records):
             for col, value in enumerate(record.__dict__.values()):
@@ -149,7 +131,6 @@ class TableManager(QWidget):
             self.filter_records(self.columns[index], filter_value, direction_value, attribute_value)
 
     def filter_records(self, column, value, direction, attribute):
-        records = []
         kwargs = {column: value} if value else {}
         if not attribute:
             attribute = column
@@ -157,20 +138,13 @@ class TableManager(QWidget):
             QMessageBox.warning(self, "Error", "Incorrect input")
             return
 
-        if isinstance(self.controller, ClientController):
-            records = self.controller.filter_clients(order_by=attribute, order_direction=direction, **kwargs)
-        elif isinstance(self.controller, TourController):
-            records = self.controller.filter_tours(order_by=attribute, order_direction=direction, **kwargs)
-        elif isinstance(self.controller, BookingController):
-            records = self.controller.filter_bookings(order_by=attribute, order_direction=direction, **kwargs)
-        elif isinstance(self.controller, PaymentController):
-            records = self.controller.filter_payments(order_by=attribute, order_direction=direction, **kwargs)
-
+        records = self.controller.filter(order_by=attribute, order_direction=direction, **kwargs)
         self.table.setRowCount(len(records))
         for row, record in enumerate(records):
             for col, value in enumerate(record.__dict__.values()):
                 item = QTableWidgetItem(str(value))
                 self.table.setItem(row, col, item)
+        QMessageBox.information(self, "Success", f"{self.controller.table_name} filtered successfully!")
 
     def edit_record(self):
         selected_row = self.table.currentRow()
@@ -191,23 +165,8 @@ class TableManager(QWidget):
                 return
             values.append(item.text())
 
-        # Первый столбец - это идентификатор записи
-        record_id = values[0]
-        values = values[1:]
-
-        if isinstance(self.controller, ClientController):
-            client = Client(record_id, *values)
-            self.controller.update_client(client)
-        elif isinstance(self.controller, TourController):
-            tour = Tour(record_id, *values)
-            self.controller.update_tour(tour)
-        elif isinstance(self.controller, BookingController):
-            booking = Booking(record_id, *values)
-            self.controller.update_booking(booking)
-        elif isinstance(self.controller, PaymentController):
-            payment = Payment(record_id, *values)
-            self.controller.update_payment(payment)
-
+        model = self.controller.get_model(*values)
+        self.controller.update(model)
         self.load_records()
         QMessageBox.information(self, "Success", f"{self.controller.table_name} updated successfully!")
 
@@ -218,15 +177,7 @@ class TableManager(QWidget):
             return
 
         record_id = self.table.item(selected_row, 0).text()
-
-        if isinstance(self.controller, ClientController):
-            self.controller.delete_client(record_id)
-        elif isinstance(self.controller, TourController):
-            self.controller.delete_tour(record_id)
-        elif isinstance(self.controller, BookingController):
-            self.controller.delete_booking(record_id)
-        elif isinstance(self.controller, PaymentController):
-            self.controller.delete_payment(record_id)
+        self.controller.delete(record_id)
 
         admin_interface = self.window()
         if isinstance(admin_interface, AdminInterface):
@@ -235,14 +186,11 @@ class TableManager(QWidget):
 
 
 class AdminInterface(QMainWindow):
-    def __init__(self, clients_controller, tours_controller, bookings_controller, payments_controller):
+    def __init__(self, controllers):
         super().__init__()
         self.setWindowTitle("Admin Interface")
         self.setGeometry(100, 100, 800, 600)
-        self.client_controller = clients_controller
-        self.tour_controller = tours_controller
-        self.booking_controller = bookings_controller
-        self.payment_controller = payments_controller
+        self.controllers = controllers
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -251,10 +199,8 @@ class AdminInterface(QMainWindow):
         self.tabs = QTabWidget()
         layout.addWidget(self.tabs)
 
-        self.init_tab("clients", self.client_controller)
-        self.init_tab("tours", self.tour_controller)
-        self.init_tab("bookings", self.booking_controller)
-        self.init_tab("payments", self.payment_controller)
+        for table_name, controller in self.controllers.items():
+            self.init_tab(table_name, controller)
 
     def init_tab(self, tab_name, controller):
         tab = QWidget()
@@ -265,8 +211,7 @@ class AdminInterface(QMainWindow):
         layout.addWidget(table_manager)
 
     def closeEvent(self, event):
-        controllers = [self.client_controller, self.tour_controller, self.booking_controller, self.payment_controller]
-        for controller in controllers:
+        for controller in self.controllers.values():
             controller.repo.close()
         event.accept()
 
@@ -285,12 +230,14 @@ if __name__ == "__main__":
     booking_repo = BookingRepository(db_path)
     payment_repo = PaymentRepository(db_path)
 
-    client_controller = ClientController(client_repo)
-    tour_controller = TourController(tour_repo)
-    booking_controller = BookingController(booking_repo)
-    payment_controller = PaymentController(payment_repo)
+    my_controllers = {
+        "clients": ClientController(client_repo),
+        "tours": TourController(tour_repo),
+        "bookings": BookingController(booking_repo),
+        "payments": PaymentController(payment_repo)
+    }
 
     app = QApplication(sys.argv)
-    window = AdminInterface(client_controller, tour_controller, booking_controller, payment_controller)
+    window = AdminInterface(my_controllers)
     window.show()
     sys.exit(app.exec())

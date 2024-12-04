@@ -34,8 +34,6 @@ class ValidateRegEx:
             return not ValidateRegEx.is_phone_number(text)
         elif type == "STATUS":
             return not ValidateRegEx.is_status(text)
-        elif type == "ID":
-            return True
         return False
 
     @staticmethod
@@ -51,7 +49,7 @@ class ValidateRegEx:
     @staticmethod
     def is_direction(text):
         lst = [s.strip() for s in text.split(',')]
-        return all(direct in ["ASC", "DESC"] for direct in lst), len(lst)
+        return all(direct in ["ASC", "DESC", ""] for direct in lst), len(lst)
 
     @staticmethod
     def validate_filter_data(condition, attribute, attributes, direction):
@@ -79,39 +77,40 @@ class BaseController:
         return len(self.attr_names)
 
     def validate_filter(self, condition, attribute, direction):
-        return self.validation.validate_filter_data(condition, attribute, self.get_attr_names(), direction)
+        return self.validation.validate_filter_data(condition, attribute, self.attr_names, direction)
 
 
 class ClientController(BaseController):
     def __init__(self, client_repo):
         super().__init__("clients", client_repo)
 
-    def get_all_clients(self):
-        return self.repo.get_all()
+    def get_model(self, *args):
+        return Client(*args)
 
-    def get_client_by_id(self, client_id):
-        return self.repo.get_by_id(client_id)
+    def get_all(self):
+        return self.repo.fetch_all()
 
-    def add_client(self, client):
-        self.repo.add(client)
+    def get_by_id(self, client_id):
+        return self.repo.fetch_by_id(client_id)
 
-    def update_client(self, client):
+    def add(self, client):
+        self.repo.insert(client)
+
+    def update(self, client):
         self.repo.update(client)
 
-    def delete_client(self, client_id):
+    def delete(self, client_id):
         self.repo.delete(client_id)
 
-    def is_invalid_type(self, text, column, ids=False):
+    def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
         if self.attr_names[column] == "phone":
             current_type = "PHONE"
-        elif "id" in self.attr_names[column] and ids:
-            current_type = "ID"
 
         res = self.validation.is_invalid(text, current_type)
         return res
 
-    def filter_clients(self, order_by=None, order_direction="ASC", **kwargs):
+    def filter(self, order_by=None, order_direction="ASC", **kwargs):
         if not order_by:
             order_by = self.get_attr_names()[0]
         if not kwargs:
@@ -123,30 +122,30 @@ class TourController(BaseController):
     def __init__(self, tour_repo):
         super().__init__("tours", tour_repo)
 
-    def get_all_tours(self):
-        return self.repo.get_all()
+    def get_model(self, *args):
+        return Tour(*args)
 
-    def get_tour_by_id(self, tour_id):
-        return self.repo.get_by_id(tour_id)
+    def get_all(self):
+        return self.repo.fetch_all()
 
-    def add_tour(self, tour):
-        self.repo.add(tour)
+    def get_by_id(self, tour_id):
+        return self.repo.fetch_by_id(tour_id)
 
-    def update_tour(self, tour):
+    def add(self, tour):
+        self.repo.insert(tour)
+
+    def update(self, tour):
         self.repo.update(tour)
 
-    def delete_tour(self, tour_id):
+    def delete(self, tour_id):
         self.repo.delete(tour_id)
 
-    def is_invalid_type(self, text, column, ids=False):
+    def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
-        if "id" in self.attr_names[column] and ids:
-            current_type = "ID"
-
         res = self.validation.is_invalid(text, current_type)
         return res
 
-    def filter_tours(self, order_by=None, order_direction="ASC", **kwargs):
+    def filter(self, order_by=None, order_direction="ASC", **kwargs):
         if not order_by:
             order_by = self.get_attr_names()[0]
         if not kwargs:
@@ -158,39 +157,40 @@ class BookingController(BaseController):
     def __init__(self, booking_repo):
         super().__init__("bookings", booking_repo)
 
-    def get_all_bookings(self):
-        return self.repo.get_all()
+    def get_model(self, *args):
+        return Booking(*args)
 
-    def get_booking_by_id(self, booking_id):
-        return self.repo.get_by_id(booking_id)
+    def get_all(self):
+        return self.repo.fetch_all()
 
-    def total_price_counting(self, booking):
-        return self.repo.get_price_by_tour_id(booking.tour_id) * int(booking.people_number)
+    def get_by_id(self, booking_id):
+        return self.repo.fetch_by_id(booking_id)
 
-    def add_booking(self, booking):
-        self.repo.add(booking)
+    def calculate_total_price(self, booking):
+        return self.repo.fetch_price_by_tour_id(booking.tour_id) * int(booking.people_number)
 
-    def update_booking(self, booking):
+    def add(self, booking):
+        self.repo.insert(booking)
+
+    def update(self, booking):
         self.repo.update(booking)
 
-    def delete_booking(self, booking_id):
+    def delete(self, booking_id):
         self.repo.delete(booking_id)
 
-    def is_invalid_type(self, text, column, ids=False):
+    def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
         if self.attr_names[column] == "status":
             current_type = "STATUS"
-        elif "id" in self.attr_names[column] and ids:
-            current_type = "ID"
         elif self.attr_names[column] == "client_id" and not self.validation.is_invalid(text, current_type):
-            return int(text) not in self.repo.get_clients_id_list()
+            return int(text) not in self.repo.fetch_clients_id_list()
         elif self.attr_names[column] == "tour_id" and not self.validation.is_invalid(text, current_type):
-            return int(text) not in self.repo.get_tours_id_list()
+            return int(text) not in self.repo.fetch_tours_id_list()
 
         res = self.validation.is_invalid(text, current_type)
         return res
 
-    def filter_bookings(self, order_by=None, order_direction="ASC", **kwargs):
+    def filter(self, order_by=None, order_direction="ASC", **kwargs):
         if not order_by:
             order_by = self.get_attr_names()[0]
         if not kwargs:
@@ -202,32 +202,33 @@ class PaymentController(BaseController):
     def __init__(self, payment_repo):
         super().__init__("payments", payment_repo)
 
-    def get_all_payments(self):
-        return self.repo.get_all()
+    def get_model(self, *args):
+        return Payment(*args)
 
-    def get_payment_by_id(self, payment_id):
-        return self.repo.get_by_id(payment_id)
+    def get_all(self):
+        return self.repo.fetch_all()
 
-    def add_payment(self, payment):
-        self.repo.add(payment)
+    def get_by_id(self, payment_id):
+        return self.repo.fetch_by_id(payment_id)
 
-    def update_payment(self, payment):
+    def add(self, payment):
+        self.repo.insert(payment)
+
+    def update(self, payment):
         self.repo.update(payment)
 
-    def delete_payment(self, payment_id):
+    def delete(self, payment_id):
         self.repo.delete(payment_id)
 
-    def is_invalid_type(self, text, column, ids=False):
+    def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
-        if "id" in self.attr_names[column] and ids:
-            current_type = "ID"
-        elif self.attr_names[column] == "booking_id" and not self.validation.is_invalid(text, current_type):
-            return int(text) not in self.repo.get_bookings_id_list()
+        if self.attr_names[column] == "booking_id" and not self.validation.is_invalid(text, current_type):
+            return int(text) not in self.repo.fetch_bookings_id_list()
 
         res = self.validation.is_invalid(text, current_type)
         return res
 
-    def filter_payments(self, order_by=None, order_direction="ASC", **kwargs):
+    def filter(self, order_by=None, order_direction="ASC", **kwargs):
         if not order_by:
             order_by = self.get_attr_names()[0]
         if not kwargs:

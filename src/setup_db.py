@@ -81,7 +81,7 @@ def insert_initial_data(db_path):
         Tour(None, 'Asian Expedition', 'Chicago', 'Tokyo', '2024-06-01', '2024-06-10', 3500, 10)
     ]
     for tour in tours:
-        tour_repo.add(tour)
+        tour_repo.insert(tour)
 
     clients = [
         Client(None, 'John Doe', 'john.doe@example.com', '+72345678900', '123 Main St, New York', '1980-05-15'),
@@ -96,7 +96,7 @@ def insert_initial_data(db_path):
         Client(None, 'Helen Yellow', 'helen.yellow@example.com', '+72345678990', '246 Spruce St, San Jose', '1984-10-08')
     ]
     for client in clients:
-        client_repo.add(client)
+        client_repo.insert(client)
 
     bookings = [
         Booking(None, 1, 1, '2023-11-01', 2, 5000, 'confirmed'),
@@ -113,7 +113,7 @@ def insert_initial_data(db_path):
         Booking(None, 2, 3, '2023-11-12', 1, 3500, 'pending')
     ]
     for booking in bookings:
-        booking_repo.add(booking)
+        booking_repo.insert(booking)
 
     payments = [
         Payment(None, 1, '2023-11-02', 5000, 'credit_card'),
@@ -126,7 +126,7 @@ def insert_initial_data(db_path):
         Payment(None, 12, '2023-11-13', 3500, 'credit_card')
     ]
     for payment in payments:
-        payment_repo.add(payment)
+        payment_repo.insert(payment)
 
 
 if __name__ == '__main__':

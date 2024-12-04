@@ -71,17 +71,17 @@ class ClientRepository(BaseRepository):
     def __init__(self, db_path):
         super().__init__(db_path)
 
-    def get_all(self):
+    def fetch_all(self):
         self.cursor.execute("SELECT * FROM clients")
         rows = self.cursor.fetchall()
         return [Client(*row) for row in rows]
 
-    def get_by_id(self, client_id):
+    def fetch_by_id(self, client_id):
         self.cursor.execute("SELECT * FROM clients WHERE client_id=?", (client_id,))
         row = self.cursor.fetchone()
         return Client(*row) if row else None
 
-    def add(self, client):
+    def insert(self, client):
         self.cursor.execute("""
         INSERT INTO clients (name, email, phone, address, date_of_birth)
         VALUES (?, ?, ?, ?, ?)
@@ -105,17 +105,17 @@ class TourRepository(BaseRepository):
     def __init__(self, db_path):
         super().__init__(db_path)
 
-    def get_all(self):
+    def fetch_all(self):
         self.cursor.execute("SELECT * FROM tours")
         rows = self.cursor.fetchall()
         return [Tour(*row) for row in rows]
 
-    def get_by_id(self, tour_id):
+    def fetch_by_id(self, tour_id):
         self.cursor.execute("SELECT * FROM tours WHERE tour_id=?", (tour_id,))
         row = self.cursor.fetchone()
         return Tour(*row) if row else None
 
-    def add(self, tour):
+    def insert(self, tour):
         self.cursor.execute("""
         INSERT INTO tours (title, city_of_departure, destination, start_date, end_date, price, available_place)
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -139,34 +139,34 @@ class BookingRepository(BaseRepository):
     def __init__(self, db_path):
         super().__init__(db_path)
 
-    def get_all(self):
+    def fetch_all(self):
         self.cursor.execute("SELECT * FROM bookings")
         rows = self.cursor.fetchall()
         return [Booking(*row) for row in rows]
 
-    def get_by_id(self, booking_id):
+    def fetch_by_id(self, booking_id):
         self.cursor.execute("SELECT * FROM bookings WHERE booking_id=?", (booking_id,))
         row = self.cursor.fetchone()
         return Booking(*row) if row else None
 
-    def get_price_by_tour_id(self, tour_id):
+    def fetch_price_by_tour_id(self, tour_id):
         self.cursor.execute("SELECT * FROM tours WHERE tour_id=?", (tour_id,))
         row = self.cursor.fetchone()
         column_names = [description[0] for description in self.cursor.description]
         row_dict = dict(zip(column_names, row))
         return row_dict.get('price')
 
-    def get_clients_id_list(self):
+    def fetch_clients_id_list(self):
         self.cursor.execute("SELECT client_id FROM clients")
         rows = self.cursor.fetchall()
         return [row[0] for row in rows]
 
-    def get_tours_id_list(self):
+    def fetch_tours_id_list(self):
         self.cursor.execute("SELECT tour_id FROM tours")
         rows = self.cursor.fetchall()
         return [row[0] for row in rows]
 
-    def add(self, booking):
+    def insert(self, booking):
         self.cursor.execute("""
         INSERT INTO bookings (client_id, tour_id, booking_date, people_number, total_price, status)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -190,22 +190,22 @@ class PaymentRepository(BaseRepository):
     def __init__(self, db_path):
         super().__init__(db_path)
 
-    def get_all(self):
+    def fetch_all(self):
         self.cursor.execute("SELECT * FROM payments")
         rows = self.cursor.fetchall()
         return [Payment(*row) for row in rows]
 
-    def get_by_id(self, payment_id):
+    def fetch_by_id(self, payment_id):
         self.cursor.execute("SELECT * FROM payments WHERE payment_id=?", (payment_id,))
         row = self.cursor.fetchone()
         return Payment(*row) if row else None
 
-    def get_bookings_id_list(self):
+    def fetch_bookings_id_list(self):
         self.cursor.execute("SELECT booking_id FROM bookings")
         rows = self.cursor.fetchall()
         return [row[0] for row in rows]
 
-    def add(self, payment):
+    def insert(self, payment):
         self.cursor.execute("""
         INSERT INTO payments (booking_id, payment_date, amount, payment_method)
         VALUES (?, ?, ?, ?)
