@@ -205,6 +205,11 @@ class PaymentRepository(BaseRepository):
         rows = self.cursor.fetchall()
         return [row[0] for row in rows]
 
+    def fetch_total_price_by_booking_id(self, booking_id):
+        self.cursor.execute("SELECT total_price FROM bookings WHERE booking_id=?", (booking_id,))
+        rows = self.cursor.fetchall()
+        return rows[0][0]
+
     def insert(self, payment):
         self.cursor.execute("""
         INSERT INTO payments (booking_id, payment_date, amount, payment_method)

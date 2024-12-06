@@ -95,23 +95,22 @@ class TableManager(QWidget):
 
     def add_record(self):
         values = [self.inputs[column].text() for column in self.columns[1:]]
-        valids = [not self.controller.is_invalid_type(value, col, ids=False) for col, value in enumerate(["0"] + values)][1:]
-        if all(valids):
-            model = self.controller.get_model(None, *values)
-            if isinstance(model, Booking):
-                if model.total_price != self.controller.calculate_total_price(model):
-                    QMessageBox.warning(self, "Error", "Incorrect total price.")
-                    return
+        is_valid, error_text = self.controller.validate_record_types(values)
+        if not is_valid:
+            QMessageBox.warning(self, "Error", error_text)
+            return
 
-            self.controller.add(model)
-            self.load_records()
-            self.clear_inputs()
-            QMessageBox.information(self, "Success", f"{self.controller.table_name} added successfully!")
-        else:
-            QMessageBox.warning(self, "Error", "Wrong input data.")
+        model = self.controller.get_model(None, *values)
+        self.controller.add(model)
+        self.load_records()
+        self.clear_inputs()
+        QMessageBox.information(self, "Success", f"{self.controller.table_name} added successfully!")
 
     def load_records(self):
         records = self.controller.get_all()
+        self.update_table(records)
+
+    def update_table(self, records):
         self.table.setRowCount(len(records))
         for row, record in enumerate(records):
             for col, value in enumerate(record.__dict__.values()):
@@ -139,11 +138,7 @@ class TableManager(QWidget):
             return
 
         records = self.controller.filter(order_by=attribute, order_direction=direction, **kwargs)
-        self.table.setRowCount(len(records))
-        for row, record in enumerate(records):
-            for col, value in enumerate(record.__dict__.values()):
-                item = QTableWidgetItem(str(value))
-                self.table.setItem(row, col, item)
+        self.update_table(records)
         QMessageBox.information(self, "Success", f"{self.controller.table_name} filtered successfully!")
 
     def edit_record(self):
@@ -154,16 +149,19 @@ class TableManager(QWidget):
             return
         if selected_col == 0:
             QMessageBox.warning(self, "Error", "You selected a primary key")
+            self.load_records()
+            return
+        if not self.controller.validate_edit_permission(selected_col):
+            QMessageBox.warning(self, "Error", "You don't have sufficient permissions to edit this cell")
+            self.load_records()
             return
 
-        values = []
-        for col in range(self.table.columnCount()):
-            item = self.table.item(selected_row, col)
-            if self.controller.is_invalid_type(item.text(), col):
-                QMessageBox.warning(self, "Error", "Incorrect type")
-                self.load_records()
-                return
-            values.append(item.text())
+        values = [self.table.item(selected_row, col).text() for col in range(self.table.columnCount())]
+        is_valid, error_text = self.controller.validate_record_types(values)
+        if not is_valid:
+            QMessageBox.warning(self, "Error", error_text)
+            self.load_records()
+            return
 
         model = self.controller.get_model(*values)
         self.controller.update(model)
@@ -181,7 +179,7 @@ class TableManager(QWidget):
 
         admin_interface = self.window()
         if isinstance(admin_interface, AdminInterface):
-            admin_interface.update_all_tables()
+            admin_interface.load_all_tables()
         QMessageBox.information(self, "Success", f"{self.controller.table_name} deleted successfully!")
 
 
@@ -215,7 +213,7 @@ class AdminInterface(QMainWindow):
             controller.repo.close()
         event.accept()
 
-    def update_all_tables(self):
+    def load_all_tables(self):
         for index in range(self.tabs.count()):
             tab = self.tabs.widget(index)
             table_manager = tab.findChild(TableManager)

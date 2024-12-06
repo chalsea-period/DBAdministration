@@ -34,6 +34,8 @@ class ValidateRegEx:
             return not ValidateRegEx.is_phone_number(text)
         elif type == "STATUS":
             return not ValidateRegEx.is_status(text)
+        if text == "":
+            return True
         return False
 
     @staticmethod
@@ -110,12 +112,24 @@ class ClientController(BaseController):
         res = self.validation.is_invalid(text, current_type)
         return res
 
+    def validate_record_types(self, record):
+        if len(record) != len(self.attr_names):
+            record = [None, *record]
+        for col in range(1, len(record)):
+            if self.is_invalid_type(record[col], col):
+                return False, "Invalid type of " + self.attr_names[col]
+        return True, "All good"
+
+    def validate_edit_permission(self, selected_col):
+        return True
+
     def filter(self, order_by=None, order_direction="ASC", **kwargs):
         if not order_by:
             order_by = self.get_attr_names()[0]
         if not kwargs:
             return self.repo.filter_by(self.table_name, Client, order_by, order_direction)
         return self.repo.filter_by(self.table_name, Client, order_by, order_direction, **kwargs)
+
 
 
 class TourController(BaseController):
@@ -144,6 +158,20 @@ class TourController(BaseController):
         current_type = self.attr_types[column]
         res = self.validation.is_invalid(text, current_type)
         return res
+
+    def validate_record_types(self, record):
+        if len(record) != len(self.attr_names):
+            record = [None, *record]
+        for col in range(1, len(record)):
+            if self.is_invalid_type(record[col], col):
+                return False, "Invalid type of " + self.attr_names[col]
+        return True, "All good"
+
+    def validate_edit_permission(self, selected_col):
+        current_col_name = self.attr_names[selected_col]
+        if current_col_name == "price" or current_col_name == "available_place":
+            return False
+        return True
 
     def filter(self, order_by=None, order_direction="ASC", **kwargs):
         if not order_by:
@@ -190,6 +218,23 @@ class BookingController(BaseController):
         res = self.validation.is_invalid(text, current_type)
         return res
 
+    def validate_record_types(self, record):
+        if len(record) != len(self.attr_names):
+            record = [None, *record]
+        booking = Booking(*record)
+        for col in range(1, len(record)):
+            if self.is_invalid_type(record[col], col):
+                return False, "Invalid type of " + self.attr_names[col]
+            if self.attr_names[col] == "total_price" and int(record[col]) != self.calculate_total_price(booking):
+                return False, "Incorrect total_price."
+        return True, "All good"
+
+    def validate_edit_permission(self, selected_col):
+        current_col_name = self.attr_names[selected_col]
+        if current_col_name == "people_number" or current_col_name == "total_price":
+            return False
+        return True
+
     def filter(self, order_by=None, order_direction="ASC", **kwargs):
         if not order_by:
             order_by = self.get_attr_names()[0]
@@ -220,6 +265,9 @@ class PaymentController(BaseController):
     def delete(self, payment_id):
         self.repo.delete(payment_id)
 
+    def get_right_amount(self, payment):
+        return self.repo.fetch_total_price_by_booking_id(payment.booking_id)
+
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
         if self.attr_names[column] == "booking_id" and not self.validation.is_invalid(text, current_type):
@@ -227,6 +275,23 @@ class PaymentController(BaseController):
 
         res = self.validation.is_invalid(text, current_type)
         return res
+
+    def validate_record_types(self, record):
+        if len(record) != len(self.attr_names):
+            record = [None, *record]
+        payment = Payment(*record)
+        for col in range(1, len(record)):
+            if self.is_invalid_type(record[col], col):
+                return False, "Invalid type of " + self.attr_names[col]
+            if self.attr_names[col] == "amount" and int(record[col]) != self.get_right_amount(payment):
+                return False, "Incorrect amount."
+        return True, "All good"
+
+    def validate_edit_permission(self, selected_col):
+        current_col_name = self.attr_names[selected_col]
+        if current_col_name == "amount":
+            return False
+        return True
 
     def filter(self, order_by=None, order_direction="ASC", **kwargs):
         if not order_by:
