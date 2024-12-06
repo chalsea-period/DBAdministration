@@ -177,6 +177,11 @@ class BookingController(BaseController):
     def calculate_total_price(self, booking):
         return self.repo.fetch_price_by_tour_id(booking.tour_id) * int(booking.people_number)
 
+    def calculate_remaining_places(self, tour_id):
+        places = self.repo.fetch_available_places_by_tour_id(tour_id)
+        occupied = self.repo.fetch_occupied_places_by_tour_id(tour_id)
+        return places - occupied
+
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
         if self.attr_names[column] == "status":
@@ -198,6 +203,8 @@ class BookingController(BaseController):
                 return False, "Invalid type of " + self.attr_names[col]
             if self.attr_names[col] == "total_price" and int(record[col]) != self.calculate_total_price(booking):
                 return False, "Incorrect total_price."
+            if self.attr_names[col] == "people_number" and int(record[col]) > self.calculate_remaining_places(booking.tour_id):
+                return False, "The people number is more than the remaining places of the tour"
         return True, "All good"
 
     def validate_edit_permission(self, selected_col):

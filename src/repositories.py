@@ -156,6 +156,23 @@ class BookingRepository(BaseRepository):
         row_dict = dict(zip(column_names, row))
         return row_dict.get('price')
 
+    def fetch_available_places_by_tour_id(self, tour_id):
+        self.cursor.execute("SELECT * FROM tours WHERE tour_id=?", (tour_id,))
+        row = self.cursor.fetchone()
+        column_names = [description[0] for description in self.cursor.description]
+        row_dict = dict(zip(column_names, row))
+        return row_dict.get('available_place')
+
+    def fetch_occupied_places_by_tour_id(self, tour_id):
+        self.cursor.execute("""
+        SELECT tour_id, SUM(people_number) AS occupied_count FROM bookings
+        WHERE status = 'confirmed' OR status = 'pending'
+        GROUP BY tour_id
+        HAVING tour_id=?
+        """, (tour_id,))
+        row = self.cursor.fetchone()
+        return row[1]
+
     def fetch_clients_id_list(self):
         self.cursor.execute("SELECT client_id FROM clients")
         rows = self.cursor.fetchall()
