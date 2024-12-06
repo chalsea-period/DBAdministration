@@ -78,8 +78,39 @@ class BaseController:
     def get_columns_count(self):
         return len(self.attr_names)
 
+    def get_all(self):
+        return self.repo.fetch_all()
+
+    def get_by_id(self, model_id):
+        return self.repo.fetch_by_id(model_id)
+
+    def add(self, model):
+        self.repo.insert(model)
+
+    def update(self, model):
+        self.repo.update(model)
+
+    def delete(self, model_id):
+        self.repo.delete(model_id)
+
+    def filter(self, order_by=None, order_direction="ASC", **kwargs):
+        if not order_by:
+            order_by = self.get_attr_names()[0]
+        if not kwargs:
+            return self.repo.filter_by(self.table_name, Client, order_by, order_direction)
+        return self.repo.filter_by(self.table_name, self.get_model, order_by, order_direction, **kwargs)
+
     def validate_filter(self, condition, attribute, direction):
         return self.validation.validate_filter_data(condition, attribute, self.attr_names, direction)
+
+    def get_model(self, *args):
+        raise NotImplementedError("Subclasses must implement this method")
+
+    def validate_record_types(self, record):
+        raise NotImplementedError("Subclasses must implement this method")
+
+    def validate_edit_permission(self, selected_col):
+        raise NotImplementedError("Subclasses must implement this method")
 
 
 class ClientController(BaseController):
@@ -88,21 +119,6 @@ class ClientController(BaseController):
 
     def get_model(self, *args):
         return Client(*args)
-
-    def get_all(self):
-        return self.repo.fetch_all()
-
-    def get_by_id(self, client_id):
-        return self.repo.fetch_by_id(client_id)
-
-    def add(self, client):
-        self.repo.insert(client)
-
-    def update(self, client):
-        self.repo.update(client)
-
-    def delete(self, client_id):
-        self.repo.delete(client_id)
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
@@ -123,14 +139,6 @@ class ClientController(BaseController):
     def validate_edit_permission(self, selected_col):
         return True
 
-    def filter(self, order_by=None, order_direction="ASC", **kwargs):
-        if not order_by:
-            order_by = self.get_attr_names()[0]
-        if not kwargs:
-            return self.repo.filter_by(self.table_name, Client, order_by, order_direction)
-        return self.repo.filter_by(self.table_name, Client, order_by, order_direction, **kwargs)
-
-
 
 class TourController(BaseController):
     def __init__(self, tour_repo):
@@ -138,21 +146,6 @@ class TourController(BaseController):
 
     def get_model(self, *args):
         return Tour(*args)
-
-    def get_all(self):
-        return self.repo.fetch_all()
-
-    def get_by_id(self, tour_id):
-        return self.repo.fetch_by_id(tour_id)
-
-    def add(self, tour):
-        self.repo.insert(tour)
-
-    def update(self, tour):
-        self.repo.update(tour)
-
-    def delete(self, tour_id):
-        self.repo.delete(tour_id)
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
@@ -173,13 +166,6 @@ class TourController(BaseController):
             return False
         return True
 
-    def filter(self, order_by=None, order_direction="ASC", **kwargs):
-        if not order_by:
-            order_by = self.get_attr_names()[0]
-        if not kwargs:
-            return self.repo.filter_by(self.table_name, Tour, order_by, order_direction)
-        return self.repo.filter_by(self.table_name, Tour, order_by, order_direction, **kwargs)
-
 
 class BookingController(BaseController):
     def __init__(self, booking_repo):
@@ -188,23 +174,8 @@ class BookingController(BaseController):
     def get_model(self, *args):
         return Booking(*args)
 
-    def get_all(self):
-        return self.repo.fetch_all()
-
-    def get_by_id(self, booking_id):
-        return self.repo.fetch_by_id(booking_id)
-
     def calculate_total_price(self, booking):
         return self.repo.fetch_price_by_tour_id(booking.tour_id) * int(booking.people_number)
-
-    def add(self, booking):
-        self.repo.insert(booking)
-
-    def update(self, booking):
-        self.repo.update(booking)
-
-    def delete(self, booking_id):
-        self.repo.delete(booking_id)
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
@@ -235,13 +206,6 @@ class BookingController(BaseController):
             return False
         return True
 
-    def filter(self, order_by=None, order_direction="ASC", **kwargs):
-        if not order_by:
-            order_by = self.get_attr_names()[0]
-        if not kwargs:
-            return self.repo.filter_by(self.table_name, Booking, order_by, order_direction)
-        return self.repo.filter_by(self.table_name, Booking, order_by, order_direction, **kwargs)
-
 
 class PaymentController(BaseController):
     def __init__(self, payment_repo):
@@ -249,21 +213,6 @@ class PaymentController(BaseController):
 
     def get_model(self, *args):
         return Payment(*args)
-
-    def get_all(self):
-        return self.repo.fetch_all()
-
-    def get_by_id(self, payment_id):
-        return self.repo.fetch_by_id(payment_id)
-
-    def add(self, payment):
-        self.repo.insert(payment)
-
-    def update(self, payment):
-        self.repo.update(payment)
-
-    def delete(self, payment_id):
-        self.repo.delete(payment_id)
 
     def get_right_amount(self, payment):
         return self.repo.fetch_total_price_by_booking_id(payment.booking_id)
@@ -292,10 +241,3 @@ class PaymentController(BaseController):
         if current_col_name == "amount":
             return False
         return True
-
-    def filter(self, order_by=None, order_direction="ASC", **kwargs):
-        if not order_by:
-            order_by = self.get_attr_names()[0]
-        if not kwargs:
-            return self.repo.filter_by(self.table_name, Payment, order_by, order_direction)
-        return self.repo.filter_by(self.table_name, Payment, order_by, order_direction, **kwargs)
