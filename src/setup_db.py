@@ -1,6 +1,6 @@
 import sqlite3
-from repositories import ClientRepository, TourRepository, BookingRepository, PaymentRepository
-from models import clients,washers,services,orders
+from repositories import ClientRepository, WasherRepository, ServiceRepository, OrderRepository,ScheduleRepository
+from models import clients, washers, services, orders, schedule
 
 
 def recreate_all(db_path):
@@ -134,4 +134,4 @@ if __name__ == '__main__':
     insert_initial_data("../databases/TravelAgency.db")'''
 
 if __name__ == '__main__':
-    recreate_all("../databases/TravelAgency.db")
+    recreate_all("../databases/auto_washer.db")

@@ -1,5 +1,5 @@
 import re
-from models import clients,washers,services,orders
+from models import clients, washers, services, orders, schedule
 
 
 class ValidateRegEx:
@@ -138,14 +138,16 @@ class ClientController(BaseController):
 
 
 class WasherController(BaseController):
-    def __init__(self, tour_repo):
-        super().__init__("tours", tour_repo)
+    def __init__(self, washer_repo):
+        super().__init__("washers", washer_repo)
 
     def get_model(self, *args):
         return washers(*args)
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
+        if self.attr_names[column] == "phone":
+            current_type = "PHONE"
         res = self.validation.is_invalid(text, current_type)
         return res
 
@@ -165,8 +167,8 @@ class WasherController(BaseController):
 
 
 class ServiceController(BaseController):
-    def __init__(self, booking_repo):
-        super().__init__("bookings", booking_repo)
+    def __init__(self, service_repo):
+        super().__init__("services", service_repo)
 
     def get_model(self, *args):
         return services(*args)
@@ -200,15 +202,45 @@ class ServiceController(BaseController):
 
 class OrderController(BaseController):
     def __init__(self, payment_repo):
-        super().__init__("payments", payment_repo)
+        super().__init__("orders", payment_repo)
 
     def get_model(self, *args):
         return orders(*args)
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
-        if self.attr_names[column] == "booking_id" and not self.validation.is_invalid(text, current_type):
-            return int(text) not in self.repo.fetch_bookings_id_list()
+        # if self.attr_names[column] == "booking_id" and not self.validation.is_invalid(text, current_type):
+        #     return int(text) not in self.repo.fetch_bookings_id_list()
+
+        res = self.validation.is_invalid(text, current_type)
+        return res
+
+    def validate_record_types(self, record):
+        if len(record) != len(self.attr_names):
+            record = [None, *record]
+        for col in range(1, len(record)):
+            if self.is_invalid_type(record[col], col):
+                return False, "Invalid type of " + self.attr_names[col]
+        return True, "All good"
+
+    def validate_edit_permission(self, selected_col):
+        # current_col_name = self.attr_names[selected_col]
+        # if current_col_name == "amount":
+        #     return False
+        return True
+
+
+class ScheduleController(BaseController):
+    def __init__(self, schedule_repo):
+        super().__init__("schedule", schedule_repo)
+
+    def get_model(self, *args):
+        return schedule(*args)
+
+    def is_invalid_type(self, text, column):
+        current_type = self.attr_types[column]
+        # if self.attr_names[column] == "booking_id" and not self.validation.is_invalid(text, current_type):
+        #     return int(text) not in self.repo.fetch_bookings_id_list()
 
         res = self.validation.is_invalid(text, current_type)
         return res

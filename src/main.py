@@ -1,7 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication
 from repositories import ClientRepository, WasherRepository, ServiceRepository, OrderRepository,ScheduleRepository
-from controllers import ClientController, TourController, BookingController, PaymentController
+from controllers import ClientController, WasherController, ServiceController, OrderController, ScheduleController
 from GeniusInterface import AdminInterface
 
 
@@ -15,9 +15,10 @@ if __name__ == "__main__":
 
     my_controllers = {
         "clients": ClientController(client_repo),
-        "tours": TourController(tour_repo),
-        "bookings": BookingController(booking_repo),
-        "payments": PaymentController(payment_repo)
+        "washers": WasherController(washer_repo),
+        "services": ServiceController(service_repo),
+        "orders": OrderController(order_repo),
+        "schedule": ScheduleController(schedule_repo)
     }
 
     app = QApplication(sys.argv)
