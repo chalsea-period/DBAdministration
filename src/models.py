@@ -5,7 +5,7 @@ class clients:
         self.email = email
         self.phone = phone
         self.reg_date = reg_date
-        self.date_of_birth = birth_date
+        self.birth_date = birth_date
 
 
 class washers:

@@ -107,7 +107,7 @@ class WasherRepository(BaseRepository):
     
     def insert(self, washers):
         self.cursor.execute("""
-        INSERT INTO tours (name, email, phone, work_experience, birth_date, qualification)
+        INSERT INTO washers (name, email, phone, work_experience, birth_date, qualification)
         VALUES (?, ?, ?, ?, ?, ?)
         """, (washers.name, washers.email, washers.phone, washers.work_experience, washers.birth_date, washers.qualification))
         self.commit()
@@ -134,11 +134,11 @@ class ServiceRepository(BaseRepository):
         rows = self.cursor.fetchall()
         return [services(*row) for row in rows]
 
-    def insert(self, services):
+    def insert(self, service):
         self.cursor.execute("""
-        INSERT INTO services (id, name, price, execution_time)
-        VALUES (?, ?, ?, ?, ?)
-        """, (services.id, services.name, services.price, services.execution_time))
+        INSERT INTO services (name, price, execution_time)
+        VALUES (?, ?, ?)
+        """, (service.name, service.price, service.execution_time))
         self.commit()
 
     def update(self, services):
