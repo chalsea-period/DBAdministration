@@ -9,10 +9,10 @@ def recreate_all(db_path):
     cursor.execute('PRAGMA foreign_keys = ON')
 
     # Удаление таблиц
-    cursor.execute('DROP TABLE IF EXISTS clients')
     cursor.execute('DROP TABLE IF EXISTS services')
     cursor.execute('DROP TABLE IF EXISTS orders')
     cursor.execute('DROP TABLE IF EXISTS schedule')
+    cursor.execute('DROP TABLE IF EXISTS clients')
     cursor.execute('DROP TABLE IF EXISTS washers')
 
     cursor.execute('''
@@ -41,16 +41,18 @@ def recreate_all(db_path):
             id integer primary key,
             name varchar(50) not null,
             price smallmoney not null,
-            execution_time int not null
+            execution_time integer not null
         )
     ''')
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS orders (
             id integer primary key,
-            services varchar(200) not null,
-            washer integer not null,
+            client_id integer not null,
+            services varchar(20) not null,
+            washer_id integer not null,
             status varchar(15) default 'awaiting',
-            constraint washer_link foreign key (washer) references washers(id)
+            constraint client_fk foreign key (client_id) references clients(id),
+            constraint washer_fk foreign key (washer_id) references washers(id)
         )
     ''')
     cursor.execute('''
@@ -68,7 +70,7 @@ def recreate_all(db_path):
             "4pm" integer not null,
             "5pm" integer not null,
             "6pm" integer not null,
-            constraint schedule_pk primary key (work_day, washer_id)
+            constraint schedule_pk primary key (work_day, washer_id),
             constraint washer_link foreign key (washer_id) references washers(id)
         )
     ''')
@@ -118,16 +120,16 @@ def insert_initial_data(db_path):
         service_repo.insert(service)
 
     orders_data = [
-        orders(None, 'Car Wash', 1, 'completed'),
-        orders(None, 'Interior Cleaning', 2, 'awaiting'),
-        orders(None, 'Full Detail', 3, 'completed'),
-        orders(None, 'Car Wash', 4, 'awaiting'),
-        orders(None, 'Interior Cleaning', 5, 'completed'),
-        orders(None, 'Full Detail', 1, 'awaiting'),
-        orders(None, 'Car Wash', 2, 'completed'),
-        orders(None, 'Interior Cleaning', 3, 'awaiting'),
-        orders(None, 'Full Detail', 4, 'completed'),
-        orders(None, 'Car Wash', 5, 'awaiting')
+        orders(None, 1, 'Car Wash', 1, 'completed'),
+        orders(None, 2, 'Interior Cleaning', 2, 'awaiting'),
+        orders(None, 3, 'Full Detail', 3, 'completed'),
+        orders(None, 4, 'Car Wash', 4, 'awaiting'),
+        orders(None, 5, 'Interior Cleaning', 5, 'completed'),
+        orders(None, 6, 'Full Detail', 1, 'awaiting'),
+        orders(None, 7, 'Car Wash', 2, 'completed'),
+        orders(None, 8, 'Interior Cleaning', 3, 'awaiting'),
+        orders(None, 9, 'Full Detail', 4, 'completed'),
+        orders(None, 10, 'Car Wash', 5, 'awaiting')
     ]
     for order in orders_data:
         order_repo.insert(order)

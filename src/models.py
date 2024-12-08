@@ -1,6 +1,6 @@
 class clients:
     def __init__(self, id, name, email, phone, reg_date, birth_date):
-        self.client_id = id
+        self.id = id
         self.name = name
         self.email = email
         self.phone = phone
@@ -28,10 +28,11 @@ class services:
 
 
 class orders:
-    def __init__(self, id, services, washer, status):
+    def __init__(self, id, client_id, services, washer_id, status):
         self.id = id
+        self.client_id = client_id
         self.services = services
-        self.washer = washer
+        self.washer_id = washer_id
         self.status = status
 
 

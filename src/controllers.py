@@ -20,16 +20,20 @@ class ValidateRegEx:
         return bool(phone_pattern.match(text))
 
     @staticmethod
+    def is_bool(text):
+        return text in ("0", "1")
+
+    @staticmethod
     def is_status(text):
-        if text in ('pending', 'confirmed', 'cancelled', 'completed'):
-            return True
-        return False
+        return text in ('awaiting', 'cancelled', 'completed')
 
     @staticmethod
     def is_invalid(text, type):
-        if type == "INTEGER":
+        if type == "INTEGER" or type == "smallmoney":
             return not ValidateRegEx.is_integer(text)
-        elif type == "DATE":
+        elif type == "BOOL":
+            return not ValidateRegEx.is_bool(text)
+        elif type == "date":
             return not ValidateRegEx.is_date(text)
         elif type == "PHONE":
             return not ValidateRegEx.is_phone_number(text)
@@ -69,6 +73,7 @@ class BaseController:
         self.validation = ValidateRegEx
         self.attr_types = self.repo.get_attr_types(self.table_name)
         self.attr_names = self.repo.get_attr_names(self.table_name)
+        self.pks = self.repo.get_primary_keys(self.table_name)
 
     def get_attr_names(self):
         return self.attr_names
@@ -100,6 +105,9 @@ class BaseController:
 
     def validate_filter(self, condition, attribute, direction):
         return self.validation.validate_filter_data(condition, attribute, self.attr_names, direction)
+
+    def validate_primary_key_cols(self, column):
+        return self.attr_names[column] in self.pks
 
     def get_model(self, *args):
         raise NotImplementedError("Subclasses must implement this method")
@@ -161,7 +169,7 @@ class WasherController(BaseController):
         return True, "All good"
 
     def validate_edit_permission(self, selected_col):
-        current_col_name = self.attr_names[selected_col]
+        # current_col_name = self.attr_names[selected_col]
         # if current_col_name == "price" or current_col_name == "available_place":
         #     return False
         return True
@@ -176,9 +184,7 @@ class ServiceController(BaseController):
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
-        if self.attr_names[column] == "status":
-            current_type = "STATUS"
-        # elif self.attr_names[column] == "client_id" and not self.validation.is_invalid(text, current_type):
+        # if self.attr_names[column] == "client_id" and not self.validation.is_invalid(text, current_type):
         #     return int(text) not in self.repo.fetch_clients_id_list()
         # elif self.attr_names[column] == "tour_id" and not self.validation.is_invalid(text, current_type):
         #     return int(text) not in self.repo.fetch_tours_id_list()
@@ -195,7 +201,7 @@ class ServiceController(BaseController):
         return True, "All good"
 
     def validate_edit_permission(self, selected_col):
-        current_col_name = self.attr_names[selected_col]
+        # current_col_name = self.attr_names[selected_col]
         # if current_col_name == "people_number" or current_col_name == "total_price":
         #     return False
         return True
@@ -210,8 +216,12 @@ class OrderController(BaseController):
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
-        # if self.attr_names[column] == "booking_id" and not self.validation.is_invalid(text, current_type):
-        #     return int(text) not in self.repo.fetch_bookings_id_list()
+        if self.attr_names[column] == "status":
+            current_type = "STATUS"
+        elif self.attr_names[column] == "washer_id" and not self.validation.is_invalid(text, current_type):
+            return int(text) not in self.repo.fetch_washer_id_list()
+        elif self.attr_names[column] == "client_id" and not self.validation.is_invalid(text, current_type):
+            return int(text) not in self.repo.fetch_client_id_list()
 
         res = self.validation.is_invalid(text, current_type)
         return res
@@ -251,10 +261,7 @@ class ScheduleController(BaseController):
         return self.repo.insert(model)
 
     def is_invalid_type(self, text, column):
-        current_type = self.attr_types[column]
-        # if self.attr_names[column] == "booking_id" and not self.validation.is_invalid(text, current_type):
-        #     return int(text) not in self.repo.fetch_bookings_id_list()
-
+        current_type = "BOOL"
         res = self.validation.is_invalid(text, current_type)
         return res
 

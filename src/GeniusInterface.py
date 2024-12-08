@@ -145,7 +145,7 @@ class TableManager(QWidget):
         if selected_row == -1:
             QMessageBox.warning(self, "Error", "Please select a record to edit.")
             return
-        if selected_col == 0:
+        if self.controller.validate_primary_key_cols(selected_col):
             QMessageBox.warning(self, "Error", "You selected a primary key")
             self.load_records()
             return

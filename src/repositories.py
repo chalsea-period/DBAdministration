@@ -30,6 +30,15 @@ class BaseRepository:
             types_list.append(row[2])
         return types_list
 
+    def get_primary_keys(self, table_name):
+        self.cursor.execute(f"""
+            SELECT name
+            FROM pragma_table_info("{table_name}")
+            WHERE pk > 0
+        """)
+        rows = self.cursor.fetchall()
+        return [row[0] for row in rows]
+
     def __get_condition(self, **kwargs):
         query = " WHERE "
         conditions = []
@@ -88,7 +97,7 @@ class ClientRepository(BaseRepository):
         UPDATE clients
         SET name=?, email=?, phone=?, reg_date=?, birth_date=?
         WHERE id=?
-        """, (client.name, client.email, client.phone, client.reg_Date, client.birth_date, client.id))
+        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.id))
         self.commit()
 
     def delete(self, id):
@@ -165,19 +174,29 @@ class OrderRepository(BaseRepository):
         rows = self.cursor.fetchall()
         return [orders(*row) for row in rows]
 
+    def fetch_washer_id_list(self):
+        self.cursor.execute("SELECT id FROM washers")
+        rows = self.cursor.fetchall()
+        return [row[0] for row in rows]
+
+    def fetch_client_id_list(self):
+        self.cursor.execute("SELECT id FROM clients")
+        rows = self.cursor.fetchall()
+        return [row[0] for row in rows]
+
     def insert(self, orders):
         self.cursor.execute("""
-        INSERT INTO orders (id, services, washer, status)
-        VALUES (?, ?, ?, ?)
-        """, (orders.id, orders.services, orders.washer, orders.status))
+        INSERT INTO orders (id, client_id, services, washer_id, status)
+        VALUES (?, ?, ?, ?, ?)
+        """, (orders.id, orders.client_id, orders.services, orders.washer_id, orders.status))
         self.commit()
 
     def update(self, orders):
         self.cursor.execute("""
         UPDATE orders
-        SET services=?, washer=?, status=?
+        SET client_id=?, services=?, washer_id=?, status=?
         WHERE id=?
-        """, (orders.services, orders.washer, orders.status, orders.id))
+        """, (orders.client_id, orders.services, orders.washer_id, orders.status, orders.id))
         self.commit()
 
     def delete(self, id):
