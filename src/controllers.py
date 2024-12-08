@@ -1,5 +1,5 @@
 import re
-from models import Client, Tour, Booking, Payment
+from models import clients,washers,services,orders
 
 
 class ValidateRegEx:
@@ -81,9 +81,6 @@ class BaseController:
     def get_all(self):
         return self.repo.fetch_all()
 
-    def get_by_id(self, model_id):
-        return self.repo.fetch_by_id(model_id)
-
     def add(self, model):
         self.repo.insert(model)
 
@@ -97,7 +94,7 @@ class BaseController:
         if not order_by:
             order_by = self.get_attr_names()[0]
         if not kwargs:
-            return self.repo.filter_by(self.table_name, Client, order_by, order_direction)
+            return self.repo.filter_by(self.table_name, self.get_model, order_by, order_direction)
         return self.repo.filter_by(self.table_name, self.get_model, order_by, order_direction, **kwargs)
 
     def validate_filter(self, condition, attribute, direction):
@@ -118,7 +115,7 @@ class ClientController(BaseController):
         super().__init__("clients", client_repo)
 
     def get_model(self, *args):
-        return Client(*args)
+        return clients(*args)
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
@@ -140,12 +137,12 @@ class ClientController(BaseController):
         return True
 
 
-class TourController(BaseController):
+class WasherController(BaseController):
     def __init__(self, tour_repo):
         super().__init__("tours", tour_repo)
 
     def get_model(self, *args):
-        return Tour(*args)
+        return washers(*args)
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
@@ -162,34 +159,26 @@ class TourController(BaseController):
 
     def validate_edit_permission(self, selected_col):
         current_col_name = self.attr_names[selected_col]
-        if current_col_name == "price" or current_col_name == "available_place":
-            return False
+        # if current_col_name == "price" or current_col_name == "available_place":
+        #     return False
         return True
 
 
-class BookingController(BaseController):
+class ServiceController(BaseController):
     def __init__(self, booking_repo):
         super().__init__("bookings", booking_repo)
 
     def get_model(self, *args):
-        return Booking(*args)
-
-    def calculate_total_price(self, booking):
-        return self.repo.fetch_price_by_tour_id(booking.tour_id) * int(booking.people_number)
-
-    def calculate_remaining_places(self, tour_id):
-        places = self.repo.fetch_available_places_by_tour_id(tour_id)
-        occupied = self.repo.fetch_occupied_places_by_tour_id(tour_id)
-        return places - occupied
+        return services(*args)
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
         if self.attr_names[column] == "status":
             current_type = "STATUS"
-        elif self.attr_names[column] == "client_id" and not self.validation.is_invalid(text, current_type):
-            return int(text) not in self.repo.fetch_clients_id_list()
-        elif self.attr_names[column] == "tour_id" and not self.validation.is_invalid(text, current_type):
-            return int(text) not in self.repo.fetch_tours_id_list()
+        # elif self.attr_names[column] == "client_id" and not self.validation.is_invalid(text, current_type):
+        #     return int(text) not in self.repo.fetch_clients_id_list()
+        # elif self.attr_names[column] == "tour_id" and not self.validation.is_invalid(text, current_type):
+        #     return int(text) not in self.repo.fetch_tours_id_list()
 
         res = self.validation.is_invalid(text, current_type)
         return res
@@ -197,32 +186,24 @@ class BookingController(BaseController):
     def validate_record_types(self, record):
         if len(record) != len(self.attr_names):
             record = [None, *record]
-        booking = Booking(*record)
         for col in range(1, len(record)):
             if self.is_invalid_type(record[col], col):
                 return False, "Invalid type of " + self.attr_names[col]
-            if self.attr_names[col] == "total_price" and int(record[col]) != self.calculate_total_price(booking):
-                return False, "Incorrect total_price."
-            if self.attr_names[col] == "people_number" and int(record[col]) > self.calculate_remaining_places(booking.tour_id):
-                return False, "The people number is more than the remaining places of the tour"
         return True, "All good"
 
     def validate_edit_permission(self, selected_col):
         current_col_name = self.attr_names[selected_col]
-        if current_col_name == "people_number" or current_col_name == "total_price":
-            return False
+        # if current_col_name == "people_number" or current_col_name == "total_price":
+        #     return False
         return True
 
 
-class PaymentController(BaseController):
+class OrderController(BaseController):
     def __init__(self, payment_repo):
         super().__init__("payments", payment_repo)
 
     def get_model(self, *args):
-        return Payment(*args)
-
-    def get_right_amount(self, payment):
-        return self.repo.fetch_total_price_by_booking_id(payment.booking_id)
+        return orders(*args)
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
@@ -235,16 +216,13 @@ class PaymentController(BaseController):
     def validate_record_types(self, record):
         if len(record) != len(self.attr_names):
             record = [None, *record]
-        payment = Payment(*record)
         for col in range(1, len(record)):
             if self.is_invalid_type(record[col], col):
                 return False, "Invalid type of " + self.attr_names[col]
-            if self.attr_names[col] == "amount" and int(record[col]) != self.get_right_amount(payment):
-                return False, "Incorrect amount."
         return True, "All good"
 
     def validate_edit_permission(self, selected_col):
-        current_col_name = self.attr_names[selected_col]
-        if current_col_name == "amount":
-            return False
+        # current_col_name = self.attr_names[selected_col]
+        # if current_col_name == "amount":
+        #     return False
         return True
