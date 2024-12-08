@@ -47,11 +47,13 @@ class TableManager(QWidget):
         super().__init__(parent)
         self.controller = controller
         self.columns = controller.get_attr_names()
-        self.init_ui()
-
-    def init_ui(self):
         layout = QVBoxLayout(self)
+        self.init_add(layout)
+        self.init_table(layout)
+        self.init_change(layout)
+        self.load_records()
 
+    def init_add(self, layout):
         # Форма для добавления записи
         self.inputs = {}
         types_list = self.controller.get_attr_types()[1:]
@@ -68,6 +70,7 @@ class TableManager(QWidget):
         add_button.clicked.connect(self.add_record)
         layout.addWidget(add_button)
 
+    def init_table(self, layout):
         # Таблица для отображения записей
         self.table = QTableWidget()
         self.table.setColumnCount(self.controller.get_columns_count())
@@ -75,6 +78,7 @@ class TableManager(QWidget):
         self.table.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
         layout.addWidget(self.table)
 
+    def init_change(self, layout):
         # Кнопки для редактирования и удаления
         button_layout = QHBoxLayout()
         edit_button = QPushButton("Edit Selected")
@@ -86,8 +90,6 @@ class TableManager(QWidget):
         button_layout.addWidget(delete_button)
 
         layout.addLayout(button_layout)
-
-        self.load_records()
 
     def add_record(self):
         values = [self.inputs[column].text() for column in self.columns[1:]]
@@ -179,6 +181,46 @@ class TableManager(QWidget):
         QMessageBox.information(self, "Success", f"{self.controller.table_name} deleted successfully!")
 
 
+class ScheduleManager(TableManager):
+    def __init__(self, controller, parent=None):
+        super().__init__(controller, parent)
+
+    def init_add(self, layout):
+        washer_label = QLabel("washer_id")
+        layout.addWidget(washer_label)
+        self.washer_input = QLineEdit()
+        self.washer_input.setPlaceholderText("INTEGER")
+        layout.addWidget(self.washer_input)
+
+        filter_washer_button = QPushButton("Choose washer")
+        filter_washer_button.clicked.connect(self.filter_by_washer)
+        layout.addWidget(filter_washer_button)
+
+        washer_button = QPushButton(f"Add {self.controller.table_name}")
+        washer_button.clicked.connect(self.add_record)
+        layout.addWidget(washer_button)
+
+    def add_record(self):
+        washer_id = self.washer_input.text()
+        is_valid, error_text = self.controller.validate_record_types([washer_id])
+        if not is_valid:
+            QMessageBox.warning(self, "Error", error_text)
+            return
+
+        model = self.controller.get_model(None, washer_id)
+        self.controller.add(model)
+        self.load_records()
+        self.clear_inputs()
+        QMessageBox.information(self, "Success", f"{self.controller.table_name} added successfully!")
+
+    def clear_inputs(self):
+        self.washer_input.clear()
+
+    def filter_by_washer(self):
+        washer_id = self.washer_input.text()
+        self.filter_records("washer_id", "=" + washer_id, "", "")
+
+
 class AdminInterface(QMainWindow):
     def __init__(self, controllers):
         super().__init__()
@@ -200,6 +242,11 @@ class AdminInterface(QMainWindow):
         tab = QWidget()
         self.tabs.addTab(tab, tab_name)
         layout = QVBoxLayout(tab)
+
+        if tab_name == "schedule":
+            schedule_manager = ScheduleManager(controller)
+            layout.addWidget(schedule_manager)
+            return
 
         table_manager = TableManager(controller)
         layout.addWidget(table_manager)

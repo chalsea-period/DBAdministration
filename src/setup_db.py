@@ -15,7 +15,6 @@ def recreate_all(db_path):
     cursor.execute('DROP TABLE IF EXISTS schedule')
     cursor.execute('DROP TABLE IF EXISTS washers')
 
-    # Создание таблиц
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS clients (
             id integer primary key,
@@ -24,43 +23,55 @@ def recreate_all(db_path):
             phone varchar(15) not null unique,
             reg_date date not null,
             birth_date date null
-    )
+        )
     ''')
     cursor.execute('''
-            CREATE TABLE IF NOT EXISTS washers (
-                id integer primary key,
-                name varchar(50) not null,
-                email varchar(50) null,
-                phone varchar(15) not null unique,
-                work_experience date not null,
-                birth_date date null,
-                qualification varchar(150) null
+        CREATE TABLE IF NOT EXISTS washers (
+            id integer primary key,
+            name varchar(50) not null,
+            email varchar(50) null,
+            phone varchar(15) not null unique,
+            work_experience date not null,
+            birth_date date null,
+            qualification varchar(150) null
         )
-        ''')
+    ''')
     cursor.execute('''
-            CREATE TABLE IF NOT EXISTS services (
-                id integer primary key,
-                name varchar(50) not null,
-                price smallmoney not null,
-                execution_time int not null
+        CREATE TABLE IF NOT EXISTS services (
+            id integer primary key,
+            name varchar(50) not null,
+            price smallmoney not null,
+            execution_time int not null
         )
-        ''')
+    ''')
     cursor.execute('''
-            CREATE TABLE IF NOT EXISTS orders (
-                id integer primary key,
-                services varchar(200) not null,
-                washer integer not null,
-                status varchar(15) default 'awaiting',
-                constraint washer_link foreign key (washer) references washers(id)
+        CREATE TABLE IF NOT EXISTS orders (
+            id integer primary key,
+            services varchar(200) not null,
+            washer integer not null,
+            status varchar(15) default 'awaiting',
+            constraint washer_link foreign key (washer) references washers(id)
         )
-        ''')
+    ''')
     cursor.execute('''
-            CREATE TABLE IF NOT EXISTS schedule (
-                work_day date not null primary key,
-                washer_id integer null,
-                constraint washer_link foreign key (washer_id) references washers(id)
+        CREATE TABLE IF NOT EXISTS schedule (
+            work_day date not null,
+            washer_id integer not null,
+            "8am" integer not null,
+            "9am" integer not null,
+            "10am" integer not null,
+            "11am" integer not null,
+            "12am" integer not null,
+            "1pm" integer not null,
+            "2pm" integer not null,
+            "3pm" integer not null,
+            "4pm" integer not null,
+            "5pm" integer not null,
+            "6pm" integer not null,
+            constraint schedule_pk primary key (work_day, washer_id)
+            constraint washer_link foreign key (washer_id) references washers(id)
         )
-        ''')
+    ''')
 
     conn.commit()
     conn.close()
@@ -97,8 +108,6 @@ def insert_initial_data(db_path):
     ]
     for washer in washers_data:
         washer_repo.insert(washer)
-
-    print([washer.id for washer in washer_repo.fetch_all()])
 
     services_data = [
         services(None, 'Car Wash', 50.0, 60),

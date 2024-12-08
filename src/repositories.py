@@ -109,7 +109,8 @@ class WasherRepository(BaseRepository):
         self.cursor.execute("""
         INSERT INTO washers (name, email, phone, work_experience, birth_date, qualification)
         VALUES (?, ?, ?, ?, ?, ?)
-        """, (washers.name, washers.email, washers.phone, washers.work_experience, washers.birth_date, washers.qualification))
+        """, (washers.name, washers.email, washers.phone, washers.work_experience, washers.birth_date,
+              washers.qualification))
         self.commit()
 
     def update(self, washers):
@@ -117,7 +118,8 @@ class WasherRepository(BaseRepository):
         UPDATE washers
         SET name=?, email=?, phone=?, work_experience=?, birth_date=?, qualification=?
         WHERE id=?
-        """, (washers.name, washers.email, washers.phone, washers.work_experience, washers.birth_date, washers.qualification, washers.id))
+        """, (washers.name, washers.email, washers.phone, washers.work_experience, washers.birth_date,
+              washers.qualification, washers.id))
         self.commit()
 
     def delete(self, id):
@@ -144,9 +146,9 @@ class ServiceRepository(BaseRepository):
     def update(self, services):
         self.cursor.execute("""
         UPDATE services
-        SET id=? name=?, price=?, execution_time=?,
+        SET name=?, price=?, execution_time=?
         WHERE id=?
-        """, (services.id, services.name, services.price, services.execution_time))
+        """, (services.name, services.price, services.execution_time, services.id))
         self.commit()
 
     def delete(self, services_id):
@@ -173,9 +175,9 @@ class OrderRepository(BaseRepository):
     def update(self, orders):
         self.cursor.execute("""
         UPDATE orders
-        SET id=?, services=?, washer=?, status=?
+        SET services=?, washer=?, status=?
         WHERE id=?
-        """, (orders.id, orders.services, orders.washer, orders.status, orders.id))
+        """, (orders.services, orders.washer, orders.status, orders.id))
         self.commit()
 
     def delete(self, id):
@@ -191,21 +193,34 @@ class ScheduleRepository(BaseRepository):
         rows = self.cursor.fetchall()
         return [schedule(*row) for row in rows]
 
-    def insert(self, schedule):
-        self.cursor.execute("""
-        INSERT INTO schedule (work_day,washer_id)
-        VALUES (?, ?)
-        """, (schedule.work_day, schedule.washer_id))
+    def fetch_last_work_day(self, washer_id):
+        self.cursor.execute("SELECT work_day FROM schedule WHERE washer_id=? ORDER BY work_day DESC",
+                            (washer_id,))
+        row = self.cursor.fetchone()
+        return row[0]
+
+    def insert(self, schedule_item):
+        self.cursor.execute('''
+            INSERT INTO schedule (work_day, washer_id, "8am", "9am", "10am", "11am", "12am", "1pm", "2pm", "3pm", "4pm",
+             "5pm", "6pm")
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (schedule_item.work_day, schedule_item.washer_id, schedule_item.hour_8am, schedule_item.hour_9am,
+                      schedule_item.hour_10am, schedule_item.hour_11am, schedule_item.hour_12am, schedule_item.hour_1pm,
+                      schedule_item.hour_2pm, schedule_item.hour_3pm, schedule_item.hour_4pm, schedule_item.hour_5pm,
+                      schedule_item.hour_6pm))
         self.commit()
 
-    def update(self, schedule):
+    def update(self, schedule_item):
         self.cursor.execute("""
         UPDATE schedule
-        SET work_day=?, washer_id=?
+        SET washer_id=?, "8am"=?, "9am"=?, "10am"=?, "11am"=?, "12am"=?, "1pm"=?, "2pm"=?, "3pm"=?, "4pm"=?, "5pm"=?, "6pm"=?
         WHERE work_day=?
-        """, (schedule.work_day, schedule.washer_id))
+        """, (schedule_item.washer_id, schedule_item.hour_8am, schedule_item.hour_9am,
+                      schedule_item.hour_10am, schedule_item.hour_11am, schedule_item.hour_12am, schedule_item.hour_1pm,
+                      schedule_item.hour_2pm, schedule_item.hour_3pm, schedule_item.hour_4pm, schedule_item.hour_5pm,
+                      schedule_item.hour_6pm, schedule_item.work_day))
         self.commit()
 
     def delete(self, work_day):
-        self.cursor.execute("DELETE FROM schedule WHERE work_day=?", (id,))
+        self.cursor.execute("DELETE FROM schedule WHERE work_day=?", (work_day,))
         self.commit()

@@ -1,4 +1,5 @@
 import re
+from datetime import datetime, timedelta
 from models import clients, washers, services, orders, schedule
 
 
@@ -236,6 +237,18 @@ class ScheduleController(BaseController):
 
     def get_model(self, *args):
         return schedule(*args)
+
+    def fetch_last_work_day(self, washer_id):
+        return self.repo.fetch_last_work_day(washer_id)
+
+    def add(self, model):
+        last_work_day = self.fetch_last_work_day(model.washer_id)
+        date = datetime.strptime(last_work_day, "%Y-%m-%d")
+        next_day = date + timedelta(days=1)
+        next_day_str = datetime.strftime(next_day, "%Y-%m-%d")
+
+        model.work_day = next_day_str
+        return self.repo.insert(model)
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
