@@ -1,5 +1,5 @@
 import sqlite3
-from models import clients,washers,services,orders
+from models import clients,washers,services,orders,schedule
 
 
 class BaseRepository:
@@ -108,7 +108,7 @@ class WasherRepository(BaseRepository):
     def insert(self, washers):
         self.cursor.execute("""
         INSERT INTO tours (name, email, phone, work_experience, birth_date, qualification)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?)
         """, (washers.name, washers.email, washers.phone, washers.work_experience, washers.birth_date, washers.qualification))
         self.commit()
 
@@ -137,7 +137,7 @@ class ServiceRepository(BaseRepository):
     def insert(self, services):
         self.cursor.execute("""
         INSERT INTO services (id, name, price, execution_time)
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?)
         """, (services.id, services.name, services.price, services.execution_time))
         self.commit()
 
@@ -179,5 +179,33 @@ class OrderRepository(BaseRepository):
         self.commit()
 
     def delete(self, id):
-        self.cursor.execute("DELETE FROM orders WHERE payment_d=?", (id,))
+        self.cursor.execute("DELETE FROM orders WHERE id=?", (id,))
+        self.commit()
+
+class ScheduleRepository(BaseRepository):
+    def __init__(self, db_path):
+        super().__init__(db_path)
+
+    def fetch_all(self):
+        self.cursor.execute("SELECT * FROM schedule")
+        rows = self.cursor.fetchall()
+        return [schedule(*row) for row in rows]
+
+    def insert(self, schedule):
+        self.cursor.execute("""
+        INSERT INTO schedule (work_day,washer_id)
+        VALUES (?, ?)
+        """, (schedule.work_day, schedule.washer_id))
+        self.commit()
+
+    def update(self, schedule):
+        self.cursor.execute("""
+        UPDATE schedule
+        SET work_day=?, washer_id=?
+        WHERE work_day=?
+        """, (schedule.work_day, schedule.washer_id))
+        self.commit()
+
+    def delete(self, work_day):
+        self.cursor.execute("DELETE FROM schedule WHERE work_day=?", (id,))
         self.commit()

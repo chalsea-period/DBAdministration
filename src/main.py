@@ -6,7 +6,7 @@ from GeniusInterface import AdminInterface
 
 
 if __name__ == "__main__":
-    db_path = "../databases/TravelAgency.db"
+    db_path = "../databases/auto_washer.db"
     client_repo = ClientRepository(db_path)
     tour_repo = TourRepository(db_path)
     booking_repo = BookingRepository(db_path)

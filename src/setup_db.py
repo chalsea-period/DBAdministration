@@ -1,6 +1,6 @@
 import sqlite3
 from repositories import ClientRepository, TourRepository, BookingRepository, PaymentRepository
-from models import client,washers,services,orders
+from models import clients,washers,services,orders
 
 
 def recreate_all(db_path):
@@ -56,12 +56,9 @@ def recreate_all(db_path):
         ''')
     cursor.execute('''
             CREATE TABLE IF NOT EXISTS schedule (
-                id int IDENTITY not null primary key,
-                services varchar(200) not null,
-                washer int not null,
-                status varchar(15) default 'awaiting',
-                constraint washer_link foreign key (washer) references washers(id)
-                
+                work_day date not null primary key,
+                washer_id int null,
+                constraint washer_link foreign key (washer_id) references washers(id)
         )
         ''')
 
@@ -72,7 +69,7 @@ def recreate_all(db_path):
     conn.close()
 
 
-def insert_initial_data(db_path):
+'''def insert_initial_data(db_path):
     client_repo = ClientRepository(db_path)
     tour_repo = TourRepository(db_path)
     booking_repo = BookingRepository(db_path)
@@ -134,4 +131,7 @@ def insert_initial_data(db_path):
 
 if __name__ == '__main__':
     recreate_all("../databases/TravelAgency.db")
-    insert_initial_data("../databases/TravelAgency.db")
+    insert_initial_data("../databases/TravelAgency.db")'''
+
+if __name__ == '__main__':
+    recreate_all("../databases/TravelAgency.db")

@@ -33,3 +33,9 @@ class orders:
         self.services = services
         self.washer = washer
         self.status = status
+
+class schedule:
+    def __init__(self,work_day,washer_id):
+        self.work_day=work_day
+        self.washer_id = washer_id
+
