@@ -1,5 +1,5 @@
 import sqlite3
-from models import Client, Tour, Booking, Payment
+from models import clients,washers,services,orders
 
 
 class BaseRepository:
@@ -74,174 +74,110 @@ class ClientRepository(BaseRepository):
     def fetch_all(self):
         self.cursor.execute("SELECT * FROM clients")
         rows = self.cursor.fetchall()
-        return [Client(*row) for row in rows]
-
-    def fetch_by_id(self, client_id):
-        self.cursor.execute("SELECT * FROM clients WHERE client_id=?", (client_id,))
-        row = self.cursor.fetchone()
-        return Client(*row) if row else None
+        return [clients(*row) for row in rows]
 
     def insert(self, client):
         self.cursor.execute("""
-        INSERT INTO clients (name, email, phone, address, date_of_birth)
+        INSERT INTO clients (name, email, phone, reg_date, birth_date)
         VALUES (?, ?, ?, ?, ?)
-        """, (client.name, client.email, client.phone, client.address, client.date_of_birth))
+        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date))
         self.commit()
 
     def update(self, client):
         self.cursor.execute("""
         UPDATE clients
-        SET name=?, email=?, phone=?, address=?, date_of_birth=?
-        WHERE client_id=?
-        """, (client.name, client.email, client.phone, client.address, client.date_of_birth, client.client_id))
+        SET name=?, email=?, phone=?, reg_date=?, birth_date=?
+        WHERE id=?
+        """, (client.name, client.email, client.phone, client.reg_Date, client.birth_date, client.id))
         self.commit()
 
-    def delete(self, client_id):
-        self.cursor.execute("DELETE FROM clients WHERE client_id=?", (client_id,))
+    def delete(self, id):
+        self.cursor.execute("DELETE FROM clients WHERE id=?", (id,))
         self.commit()
 
 
-class TourRepository(BaseRepository):
+class WasherRepository(BaseRepository):
     def __init__(self, db_path):
         super().__init__(db_path)
 
     def fetch_all(self):
-        self.cursor.execute("SELECT * FROM tours")
+        self.cursor.execute("SELECT * FROM washers")
         rows = self.cursor.fetchall()
-        return [Tour(*row) for row in rows]
-
-    def fetch_by_id(self, tour_id):
-        self.cursor.execute("SELECT * FROM tours WHERE tour_id=?", (tour_id,))
-        row = self.cursor.fetchone()
-        return Tour(*row) if row else None
-
-    def insert(self, tour):
+        return [washers(*row) for row in rows]
+    
+    def insert(self, washers):
         self.cursor.execute("""
-        INSERT INTO tours (title, city_of_departure, destination, start_date, end_date, price, available_place)
+        INSERT INTO tours (name, email, phone, work_experience, birth_date, qualification)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (tour.title, tour.city_of_departure, tour.destination, tour.start_date, tour.end_date, tour.price, tour.available_place))
+        """, (washers.name, washers.email, washers.phone, washers.work_experience, washers.birth_date, washers.qualification))
         self.commit()
 
-    def update(self, tour):
+    def update(self, washers):
         self.cursor.execute("""
-        UPDATE tours
-        SET title=?, city_of_departure=?, destination=?, start_date=?, end_date=?, price=?, available_place=?
-        WHERE tour_id=?
-        """, (tour.title, tour.city_of_departure, tour.destination, tour.start_date, tour.end_date, tour.price, tour.available_place, tour.tour_id))
+        UPDATE washers
+        SET name=?, email=?, phone=?, work_experience=?, birth_date=?, qualification=?
+        WHERE id=?
+        """, (washers.name, washers.email, washers.phone, washers.work_experience, washers.birth_date, washers.qualification, washers.id))
         self.commit()
 
-    def delete(self, tour_id):
-        self.cursor.execute("DELETE FROM tours WHERE tour_id=?", (tour_id,))
+    def delete(self, id):
+        self.cursor.execute("DELETE FROM washers WHERE id=?", (id,))
         self.commit()
 
 
-class BookingRepository(BaseRepository):
+class ServiceRepository(BaseRepository):
     def __init__(self, db_path):
         super().__init__(db_path)
 
     def fetch_all(self):
-        self.cursor.execute("SELECT * FROM bookings")
+        self.cursor.execute("SELECT * FROM services")
         rows = self.cursor.fetchall()
-        return [Booking(*row) for row in rows]
+        return [services(*row) for row in rows]
 
-    def fetch_by_id(self, booking_id):
-        self.cursor.execute("SELECT * FROM bookings WHERE booking_id=?", (booking_id,))
-        row = self.cursor.fetchone()
-        return Booking(*row) if row else None
-
-    def fetch_price_by_tour_id(self, tour_id):
-        self.cursor.execute("SELECT * FROM tours WHERE tour_id=?", (tour_id,))
-        row = self.cursor.fetchone()
-        column_names = [description[0] for description in self.cursor.description]
-        row_dict = dict(zip(column_names, row))
-        return row_dict.get('price')
-
-    def fetch_available_places_by_tour_id(self, tour_id):
-        self.cursor.execute("SELECT * FROM tours WHERE tour_id=?", (tour_id,))
-        row = self.cursor.fetchone()
-        column_names = [description[0] for description in self.cursor.description]
-        row_dict = dict(zip(column_names, row))
-        return row_dict.get('available_place')
-
-    def fetch_occupied_places_by_tour_id(self, tour_id):
+    def insert(self, services):
         self.cursor.execute("""
-        SELECT tour_id, SUM(people_number) AS occupied_count FROM bookings
-        WHERE status = 'confirmed' OR status = 'pending'
-        GROUP BY tour_id
-        HAVING tour_id=?
-        """, (tour_id,))
-        row = self.cursor.fetchone()
-        return row[1]
-
-    def fetch_clients_id_list(self):
-        self.cursor.execute("SELECT client_id FROM clients")
-        rows = self.cursor.fetchall()
-        return [row[0] for row in rows]
-
-    def fetch_tours_id_list(self):
-        self.cursor.execute("SELECT tour_id FROM tours")
-        rows = self.cursor.fetchall()
-        return [row[0] for row in rows]
-
-    def insert(self, booking):
-        self.cursor.execute("""
-        INSERT INTO bookings (client_id, tour_id, booking_date, people_number, total_price, status)
+        INSERT INTO services (id, name, price, execution_time)
         VALUES (?, ?, ?, ?, ?, ?)
-        """, (booking.client_id, booking.tour_id, booking.booking_date, booking.people_number, booking.total_price, booking.status))
+        """, (services.id, services.name, services.price, services.execution_time))
         self.commit()
 
-    def update(self, booking):
+    def update(self, services):
         self.cursor.execute("""
-        UPDATE bookings
-        SET client_id=?, tour_id=?, booking_date=?, people_number=?, total_price=?, status=?
-        WHERE booking_id=?
-        """, (booking.client_id, booking.tour_id, booking.booking_date, booking.people_number, booking.total_price, booking.status, booking.booking_id))
+        UPDATE services
+        SET id=? name=?, price=?, execution_time=?,
+        WHERE id=?
+        """, (services.id, services.name, services.price, services.execution_time))
         self.commit()
 
-    def delete(self, booking_id):
-        self.cursor.execute("DELETE FROM bookings WHERE booking_id=?", (booking_id,))
+    def delete(self, services_id):
+        self.cursor.execute("DELETE FROM services WHERE id=?", (id,))
         self.commit()
 
 
-class PaymentRepository(BaseRepository):
+class OrderRepository(BaseRepository):
     def __init__(self, db_path):
         super().__init__(db_path)
 
     def fetch_all(self):
-        self.cursor.execute("SELECT * FROM payments")
+        self.cursor.execute("SELECT * FROM orders")
         rows = self.cursor.fetchall()
-        return [Payment(*row) for row in rows]
+        return [orders(*row) for row in rows]
 
-    def fetch_by_id(self, payment_id):
-        self.cursor.execute("SELECT * FROM payments WHERE payment_id=?", (payment_id,))
-        row = self.cursor.fetchone()
-        return Payment(*row) if row else None
-
-    def fetch_bookings_id_list(self):
-        self.cursor.execute("SELECT booking_id FROM bookings")
-        rows = self.cursor.fetchall()
-        return [row[0] for row in rows]
-
-    def fetch_total_price_by_booking_id(self, booking_id):
-        self.cursor.execute("SELECT total_price FROM bookings WHERE booking_id=?", (booking_id,))
-        rows = self.cursor.fetchall()
-        return rows[0][0]
-
-    def insert(self, payment):
+    def insert(self, orders):
         self.cursor.execute("""
-        INSERT INTO payments (booking_id, payment_date, amount, payment_method)
+        INSERT INTO orders (id, services, washer, status)
         VALUES (?, ?, ?, ?)
-        """, (payment.booking_id, payment.payment_date, payment.amount, payment.payment_method))
+        """, (orders.id, orders.services, orders.washer, orders.status))
         self.commit()
 
-    def update(self, payment):
+    def update(self, orders):
         self.cursor.execute("""
-        UPDATE payments
-        SET booking_id=?, payment_date=?, amount=?, payment_method=?
-        WHERE payment_id=?
-        """, (payment.booking_id, payment.payment_date, payment.amount, payment.payment_method, payment.payment_id))
+        UPDATE orders
+        SET id=?, services=?, washer=?, status=?
+        WHERE id=?
+        """, (orders.id, orders.services, orders.washer, orders.status, orders.id))
         self.commit()
 
-    def delete(self, payment_id):
-        self.cursor.execute("DELETE FROM payments WHERE payment_id=?", (payment_id,))
+    def delete(self, id):
+        self.cursor.execute("DELETE FROM orders WHERE payment_d=?", (id,))
         self.commit()

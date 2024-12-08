@@ -1,6 +1,6 @@
 import sqlite3
 from repositories import ClientRepository, TourRepository, BookingRepository, PaymentRepository
-from models import Client, Tour, Booking, Payment
+from models import client,washers,services,orders
 
 
 def recreate_all(db_path):
@@ -9,61 +9,64 @@ def recreate_all(db_path):
     cursor.execute('PRAGMA foreign_keys = ON')
 
     # Удаление таблиц
-    cursor.execute('DROP TABLE IF EXISTS payments')
-    cursor.execute('DROP TABLE IF EXISTS bookings')
-    cursor.execute('DROP TABLE IF EXISTS tours')
     cursor.execute('DROP TABLE IF EXISTS clients')
+    cursor.execute('DROP TABLE IF EXISTS washers')
+    cursor.execute('DROP TABLE IF EXISTS services')
+    cursor.execute('DROP TABLE IF EXISTS orders')
 
     # Создание таблиц
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS clients (
-        client_id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        phone TEXT NOT NULL,
-        address TEXT NOT NULL,
-        date_of_birth DATE NOT NULL
+        CREATE TABLE IF NOT EXISTS clients (
+            id int IDENTITY not null primary key,
+            name varchar(50) not null,
+            email varchar(50) null,
+            phone varchar(15) not null unique,
+            reg_date date not null,
+            birth_date date null
     )
     ''')
-
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS tours (
-        tour_id INTEGER PRIMARY KEY,
-        title TEXT NOT NULL,
-        city_of_departure TEXT NOT NULL,
-        destination TEXT NOT NULL,
-        start_date DATE NOT NULL,
-        end_date DATE NOT NULL,
-        price INTEGER NOT NULL,
-        available_place INTEGER NOT NULL
-    )
-    ''')
-
+            CREATE TABLE IF NOT EXISTS washers (
+                id int IDENTITY not null primary key,
+                name varchar(50) not null,
+                email varchar(50) null,
+                phone varchar(15) not null unique,
+                work_experience date not null,
+                birth_date date null,
+                qualification varchar(150) null
+        )
+        ''')
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS bookings (
-        booking_id INTEGER PRIMARY KEY,
-        client_id INTEGER NOT NULL,
-        tour_id INTEGER NOT NULL,
-        booking_date DATE NOT NULL,
-        people_number INTEGER NOT NULL,
-        total_price INTEGER NOT NULL,
-        status TEXT NOT NULL,
-        CONSTRAINT fk_client FOREIGN KEY (client_id) REFERENCES clients(client_id) ON DELETE CASCADE,
-        CONSTRAINT fk_tour FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE,
-        CONSTRAINT chk_status CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed'))
-    )
-    ''')
-
+            CREATE TABLE IF NOT EXISTS services (
+                id int IDENTITY not null primary key,
+                name varchar(50) not null,
+                price smallmoney not null,
+                execution_time int not null
+        )
+        ''')
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS payments (
-        payment_id INTEGER PRIMARY KEY,
-        booking_id INTEGER NOT NULL,
-        payment_date DATE NOT NULL,
-        amount INTEGER NOT NULL,
-        payment_method TEXT NOT NULL DEFAULT 'credit_card',
-        CONSTRAINT fk_booking FOREIGN KEY (booking_id) REFERENCES bookings(booking_id) ON DELETE CASCADE
-    )
-    ''')
+            CREATE TABLE IF NOT EXISTS orders (
+                id int IDENTITY not null primary key,
+                services varchar(200) not null,
+                washer int not null,
+                status varchar(15) default 'awaiting',
+                constraint washer_link foreign key (washer) references washers(id)
+                
+        )
+        ''')
+    cursor.execute('''
+            CREATE TABLE IF NOT EXISTS schedule (
+                id int IDENTITY not null primary key,
+                services varchar(200) not null,
+                washer int not null,
+                status varchar(15) default 'awaiting',
+                constraint washer_link foreign key (washer) references washers(id)
+                
+        )
+        ''')
+
+
+
 
     conn.commit()
     conn.close()
