@@ -286,3 +286,8 @@ class ScheduleController(BaseController):
         # if current_col_name == "amount":
         #     return False
         return True
+
+
+class AuthController:
+    def __init__(self, auth_repo):
+        self.repo = auth_repo
