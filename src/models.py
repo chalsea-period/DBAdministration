@@ -1,11 +1,14 @@
 class clients:
-    def __init__(self, id, name, email, phone, reg_date, birth_date):
+    def __init__(self, id, name, email, phone, reg_date, birth_date, admin, login, password):
         self.id = id
         self.name = name
         self.email = email
         self.phone = phone
         self.reg_date = reg_date
         self.birth_date = birth_date
+        self.admin = admin
+        self.login = login
+        self.password = password
 
 
 class washers:

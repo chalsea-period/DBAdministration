@@ -23,6 +23,6 @@ if __name__ == "__main__":
     }
 
     app = QApplication(sys.argv)
-    window = LoginInterface()
+    window = AdminInterface(my_controllers)
     window.show()
     sys.exit(app.exec())

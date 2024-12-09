@@ -181,6 +181,33 @@ class TableManager(QWidget):
         QMessageBox.information(self, "Success", f"{self.controller.table_name} deleted successfully!")
 
 
+class ClientManager(TableManager):
+    def __init__(self, controller, parent=None):
+        super().__init__(controller, parent)
+
+    def init_add(self, layout):
+        return
+
+    def add_record(self):
+        return
+
+    def init_table(self, layout):
+        # Таблица для отображения записей
+        self.table = QTableWidget()
+        self.table.setColumnCount(self.controller.get_columns_count()-3)
+        self.table.setHorizontalHeaderLabels(self.controller.get_attr_names())
+        self.table.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
+        layout.addWidget(self.table)
+
+    def update_table(self, records):
+        self.table.setRowCount(len(records))
+        for row, record in enumerate(records):
+            for col, value in enumerate(record.__dict__.values()):
+                if col < 6:
+                    item = QTableWidgetItem(str(value))
+                    self.table.setItem(row, col, item)
+
+
 class ScheduleManager(TableManager):
     def __init__(self, controller, parent=None):
         super().__init__(controller, parent)
@@ -242,6 +269,10 @@ class AdminInterface(QMainWindow):
         self.tabs.addTab(tab, tab_name)
         layout = QVBoxLayout(tab)
 
+        if tab_name == "clients":
+            client_manager = ClientManager(controller)
+            layout.addWidget(client_manager)
+            return
         if tab_name == "schedule":
             schedule_manager = ScheduleManager(controller)
             layout.addWidget(schedule_manager)

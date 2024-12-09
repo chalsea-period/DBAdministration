@@ -22,7 +22,10 @@ def recreate_all(db_path):
             email varchar(50) null,
             phone varchar(15) not null unique,
             reg_date date not null,
-            birth_date date null
+            birth_date date null,
+            admin integer not null,
+            login varchar(50) not null,
+            password varchar(50) not null
         )
     ''')
     cursor.execute('''
@@ -88,16 +91,26 @@ def insert_initial_data(db_path):
     schedule_repo = ScheduleRepository(db_path)
 
     clients_data = [
-        clients(None, 'John Doe', 'john.doe@example.com', '+72345678900', '2023-10-01', '1980-05-15'),
-        clients(None, 'Jane Smith', 'jane.smith@example.com', '+72345678910', '2023-10-02', '1985-08-22'),
-        clients(None, 'Alice Johnson', 'alice.johnson@example.com', '+72345678920', '2023-10-03', '1990-11-30'),
-        clients(None, 'Bob Brown', 'bob.brown@example.com', '+72345678930', '2023-10-04', '1975-03-10'),
-        clients(None, 'Charlie Davis', 'charlie.davis@example.com', '+72345678940', '2023-10-05', '1982-07-25'),
-        clients(None, 'Diana White', 'diana.white@example.com', '+72345678950', '2023-10-06', '1995-09-18'),
-        clients(None, 'Edward Green', 'edward.green@example.com', '+72345678960', '2023-10-07', '1978-12-05'),
-        clients(None, 'Fiona Black', 'fiona.black@example.com', '+72345678970', '2023-10-08', '1987-04-12'),
-        clients(None, 'George Grey', 'george.grey@example.com', '+72345678980', '2023-10-09', '1992-06-20'),
-        clients(None, 'Helen Yellow', 'helen.yellow@example.com', '+72345678990', '2023-10-10', '1984-10-08')
+        clients(None, 'John Doe', 'john.doe@example.com', '+72345678900', '2023-10-01', '1980-05-15', 0, 'john_doe',
+                'password123'),
+        clients(None, 'Jane Smith', 'jane.smith@example.com', '+72345678910', '2023-10-02', '1985-08-22', 0,
+                'jane_smith', 'password456'),
+        clients(None, 'Alice Johnson', 'alice.johnson@example.com', '+72345678920', '2023-10-03', '1990-11-30', 0,
+                'alice_johnson', 'password789'),
+        clients(None, 'Bob Brown', 'bob.brown@example.com', '+72345678930', '2023-10-04', '1975-03-10', 0, 'bob_brown',
+                'password101'),
+        clients(None, 'Charlie Davis', 'charlie.davis@example.com', '+72345678940', '2023-10-05', '1982-07-25', 0,
+                'charlie_davis', 'password112'),
+        clients(None, 'Diana White', 'diana.white@example.com', '+72345678950', '2023-10-06', '1995-09-18', 0,
+                'diana_white', 'password131'),
+        clients(None, 'Edward Green', 'edward.green@example.com', '+72345678960', '2023-10-07', '1978-12-05', 0,
+                'edward_green', 'password141'),
+        clients(None, 'Fiona Black', 'fiona.black@example.com', '+72345678970', '2023-10-08', '1987-04-12', 0,
+                'fiona_black', 'password151'),
+        clients(None, 'George Grey', 'george.grey@example.com', '+72345678980', '2023-10-09', '1992-06-20', 0,
+                'george_grey', 'password161'),
+        clients(None, 'Helen Yellow', 'helen.yellow@example.com', '+72345678990', '2023-10-10', '1984-10-08', 0,
+                'helen_yellow', 'password171')
     ]
     for client in clients_data:
         client_repo.insert(client)

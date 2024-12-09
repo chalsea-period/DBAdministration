@@ -87,17 +87,17 @@ class ClientRepository(BaseRepository):
 
     def insert(self, client):
         self.cursor.execute("""
-        INSERT INTO clients (name, email, phone, reg_date, birth_date)
-        VALUES (?, ?, ?, ?, ?)
-        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date))
+        INSERT INTO clients (name, email, phone, reg_date, birth_date, admin, login, password)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.admin, client.login, client.password))
         self.commit()
 
     def update(self, client):
         self.cursor.execute("""
         UPDATE clients
-        SET name=?, email=?, phone=?, reg_date=?, birth_date=?
+        SET name=?, email=?, phone=?, reg_date=?, birth_date=?, admin=?, login=?, password=?
         WHERE id=?
-        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.id))
+        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.admin, client.login, client.password, client.id))
         self.commit()
 
     def delete(self, id):
