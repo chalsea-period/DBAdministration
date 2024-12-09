@@ -291,3 +291,14 @@ class ScheduleController(BaseController):
 class AuthController:
     def __init__(self, auth_repo):
         self.repo = auth_repo
+
+    def check_valid_user(self, login, password):
+        return self.repo.check_valid_user(login, password)
+
+    def check_if_admin(self, login):
+        return login[-6:] == ".admin"
+
+    def register_user(self, login, password):
+        client = clients(None, "a", "a", "+71234567890", "1111-11-11",
+                         "1111-11-11", self.check_if_admin(login), login, password)
+        return self.repo.insert(client)

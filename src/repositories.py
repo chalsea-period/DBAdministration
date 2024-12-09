@@ -244,3 +244,33 @@ class ScheduleRepository(BaseRepository):
     def delete(self, work_day):
         self.cursor.execute("DELETE FROM schedule WHERE work_day=?", (work_day,))
         self.commit()
+
+
+class AuthRepository:
+    def __init__(self, db_path):
+        self.conn = sqlite3.connect(db_path)
+        self.cursor = self.conn.cursor()
+        self.cursor.execute('PRAGMA foreign_keys = ON')
+
+    def commit(self):
+        self.conn.commit()
+
+    def close(self):
+        self.conn.close()
+
+    def check_valid_user(self, login, password):
+        try:
+            self.cursor.execute("""SELECT 1 FROM clients WHERE login=? AND password=?""", (login, password))
+            row = self.cursor.fetchone()
+            return row is not None
+        except sqlite3.Error as e:
+            print(f"Ошибка при проверке пользователя: {e}")
+            return False
+
+    def insert(self, client):
+        self.cursor.execute("""
+        INSERT INTO clients (name, email, phone, reg_date, birth_date, admin, login, password)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.admin, client.login,
+              client.password))
+        self.commit()
