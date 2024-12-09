@@ -1,9 +1,10 @@
 import sys
 from PySide6.QtWidgets import QApplication
-from repositories import ClientRepository, WasherRepository, ServiceRepository, OrderRepository,ScheduleRepository
-from controllers import ClientController, WasherController, ServiceController, OrderController, ScheduleController
+from repositories import AuthRepository, ClientRepository, WasherRepository, ServiceRepository, OrderRepository,ScheduleRepository
+from controllers import AuthController, ClientController, WasherController, ServiceController, OrderController, ScheduleController
 from GeniusInterface import AdminInterface
-from LoginRegister import LoginInterface,UserInterface
+from LoginRegister import LoginInterface
+from user_interface import UserInterface
 
 
 if __name__ == "__main__":
@@ -13,8 +14,9 @@ if __name__ == "__main__":
     service_repo = ServiceRepository(db_path)
     order_repo = OrderRepository(db_path)
     schedule_repo=ScheduleRepository(db_path)
+    auth_repo=AuthRepository(db_path)
 
-    my_controllers = {
+    admin_controllers = {
         "clients": ClientController(client_repo),
         "washers": WasherController(washer_repo),
         "services": ServiceController(service_repo),
@@ -23,9 +25,9 @@ if __name__ == "__main__":
     }
 
     app = QApplication(sys.argv)
-    login_window = LoginInterface(my_controllers)
-    admin_window=AdminInterface(my_controllers)
-    user_window=UserInterface(my_controllers)
+    login_window = LoginInterface(AuthController(auth_repo))
+    admin_window=AdminInterface(admin_controllers)
+    user_window=UserInterface(ServiceController(service_repo),ScheduleController(schedule_repo))
     login_window.set_windows(admin_window,user_window)
     login_window.show()
     sys.exit(app.exec())

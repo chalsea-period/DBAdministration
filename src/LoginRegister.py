@@ -1,11 +1,12 @@
-from PySide6.QtWidgets import (QMainWindow, QVBoxLayout, QWidget, QLabel, QLineEdit,QFormLayout,
-                               QTabWidget,QPushButton)
+from PySide6.QtWidgets import (QMainWindow, QVBoxLayout, QWidget, QLabel, QLineEdit, QFormLayout,
+                               QTabWidget, QPushButton, QMessageBox)
 from PySide6.QtCore import Qt
-from GeniusInterface import AdminInterface,UserInterface
+from GeniusInterface import AdminInterface
+from user_interface import UserInterface
 
 
 class LoginInterface(QMainWindow):
-    def __init__(self):
+    def __init__(self, auth_controller):
         super().__init__()
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -17,68 +18,59 @@ class LoginInterface(QMainWindow):
         self.tabs.addTab(self.tab1, "Login")
         self.tabs.addTab(self.tab2, "Register")
 
-        self.create_login_fields(self.tab1,"Login")
-        self.create_login_fields(self.tab2,"Register")
+        self.login_edit_login = QLineEdit()
+        self.password_edit_login = QLineEdit()
+        self.login_edit_register = QLineEdit()
+        self.password_edit_register = QLineEdit()
+
+        self.create_login_fields(self.tab1, "Login", self.login_edit_login, self.password_edit_login)
+        self.create_login_fields(self.tab2, "Register", self.login_edit_register, self.password_edit_register)
 
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.tabs)
         self.central_widget.setLayout(main_layout)
 
-    def set_windows(self,admin,user):
-        self.admin_window=admin
-        self.user_window=user
+        self.auth_controller = auth_controller
 
+    def set_windows(self, admin, user):
+        self.admin_window = admin
+        self.user_window = user
 
-    def create_login_fields(self, tab,btn_name):
+    def create_login_fields(self, tab, btn_name, login_edit, password_edit):
         grid_layout = QFormLayout()
 
         login_label = QLabel("Логин:")
-        
-
-        self.login_edit = QLineEdit()
-        self.login_edit.setFixedWidth(200)
-        
-
         grid_layout.addWidget(login_label)
-        grid_layout.addWidget(self.login_edit)
+        grid_layout.addWidget(login_edit)
 
         password_label = QLabel("Пароль:")
-        
-
-        self.password_edit = QLineEdit()
-        self.password_edit.setFixedWidth(200)
-        
-        self.password_edit.setEchoMode(QLineEdit.Password)
-       
+        password_edit.setEchoMode(QLineEdit.Password)
         grid_layout.addWidget(password_label)
-        grid_layout.addWidget(self.password_edit)
+        grid_layout.addWidget(password_edit)
 
         button = QPushButton(btn_name)
-        if btn_name=="Login":
+        if btn_name == "Login":
             button.clicked.connect(self.login)
         else:
             button.clicked.connect(self.register)
         grid_layout.addWidget(button)
 
-
-
         tab.setLayout(grid_layout)
 
     def login(self):
-        current_index=self.tabs.currentIndex()
-        login=self.login_edit[current_index].text()
-        password=self.password_edit[current_index].text()
-        if check_valid_user(login,password):
-            if check_if_admin():
+        login = self.login_edit_login.text()
+        password = self.password_edit_login.text()
+        if self.auth_controller.check_valid_user(login, password):
+            if self.auth_controller.check_if_admin(login):
+                self.hide()
                 self.admin_window.show()
             else:
+                self.hide()
                 self.user_window.show()
         else:
-            error() 
-    
-    def register(self):
-        current_index=self.tabs.currentIndex()
-        login=self.login_edit[current_index].text()
-        password=self.password_edit[current_index].text()
+            QMessageBox.warning(self, "Error", "User is not valid")
 
-        register_user(login,password)
+    def register(self):
+        login = self.login_edit_register.text()
+        password = self.password_edit_register.text()
+        self.auth_controller.register_user(login, password)
