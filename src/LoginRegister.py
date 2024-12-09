@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import (QMainWindow, QVBoxLayout, QWidget, QLabel, QLineEdit,QFormLayout,
                                QTabWidget,QPushButton)
 from PySide6.QtCore import Qt
+from GeniusInterface import AdminInterface,UserInterface
 
 
 class LoginInterface(QMainWindow):
@@ -8,7 +9,6 @@ class LoginInterface(QMainWindow):
         super().__init__()
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
-
         self.setWindowTitle("Login Interface")
         self.setGeometry(100, 100, 800, 600)
         self.tabs = QTabWidget()
@@ -23,6 +23,11 @@ class LoginInterface(QMainWindow):
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.tabs)
         self.central_widget.setLayout(main_layout)
+
+    def set_windows(self,admin,user):
+        self.admin_window=admin
+        self.user_window=user
+
 
     def create_login_fields(self, tab,btn_name):
         grid_layout = QFormLayout()
@@ -65,9 +70,9 @@ class LoginInterface(QMainWindow):
         password=self.password_edit[current_index].text()
         if check_valid_user(login,password):
             if check_if_admin():
-                AdminInterface()
+                self.admin_window.show()
             else:
-                UserInterface()
+                self.user_window.show()
         else:
             error() 
     
@@ -75,5 +80,5 @@ class LoginInterface(QMainWindow):
         current_index=self.tabs.currentIndex()
         login=self.login_edit[current_index].text()
         password=self.password_edit[current_index].text()
-        
+
         register_user(login,password)

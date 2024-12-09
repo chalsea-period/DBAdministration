@@ -6,7 +6,7 @@ from GeniusInterface import AdminInterface
 from LoginRegister import LoginInterface,UserInterface
 
 
-if name == "main":
+if __name__ == "__main__":
     db_path = "../databases/auto_washer.db"
     client_repo = ClientRepository(db_path)
     washer_repo = WasherRepository(db_path)
