@@ -3,10 +3,10 @@ from PySide6.QtWidgets import QApplication
 from repositories import ClientRepository, WasherRepository, ServiceRepository, OrderRepository,ScheduleRepository
 from controllers import ClientController, WasherController, ServiceController, OrderController, ScheduleController
 from GeniusInterface import AdminInterface
-from LoginRegister import LoginInterface
+from LoginRegister import LoginInterface,UserInterface
 
 
-if __name__ == "__main__":
+if name == "main":
     db_path = "../databases/auto_washer.db"
     client_repo = ClientRepository(db_path)
     washer_repo = WasherRepository(db_path)
@@ -23,6 +23,9 @@ if __name__ == "__main__":
     }
 
     app = QApplication(sys.argv)
-    window = AdminInterface(my_controllers)
-    window.show()
+    login_window = LoginInterface(my_controllers)
+    admin_window=AdminInterface(my_controllers)
+    user_window=UserInterface(my_controllers)
+    login_window.set_windows(admin_window,user_window)
+    login_window.show()
     sys.exit(app.exec())
