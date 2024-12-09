@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QApplication
 from repositories import ClientRepository, WasherRepository, ServiceRepository, OrderRepository,ScheduleRepository
 from controllers import ClientController, WasherController, ServiceController, OrderController, ScheduleController
 from GeniusInterface import AdminInterface
+from LoginRegister import LoginInterface
 
 
 if __name__ == "__main__":
@@ -22,6 +23,6 @@ if __name__ == "__main__":
     }
 
     app = QApplication(sys.argv)
-    window = AdminInterface(my_controllers)
+    window = LoginInterface()
     window.show()
     sys.exit(app.exec())
