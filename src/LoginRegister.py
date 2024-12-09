@@ -60,7 +60,20 @@ class LoginInterface(QMainWindow):
         tab.setLayout(grid_layout)
 
     def login(self):
-        pass
+        current_index=self.tabs.currentIndex()
+        login=self.login_edit[current_index].text()
+        password=self.password_edit[current_index].text()
+        if check_valid_user(login,password):
+            if check_if_admin():
+                AdminInterface()
+            else:
+                UserInterface()
+        else:
+            error() 
     
     def register(self):
-        pass
+        current_index=self.tabs.currentIndex()
+        login=self.login_edit[current_index].text()
+        password=self.password_edit[current_index].text()
+        
+        register_user(login,password)
