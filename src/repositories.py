@@ -186,22 +186,23 @@ class OrderRepository(BaseRepository):
 
     def insert(self, orders):
         self.cursor.execute("""
-        INSERT INTO orders (id, client_id, services, washer_id, status)
-        VALUES (?, ?, ?, ?, ?)
-        """, (orders.id, orders.client_id, orders.services, orders.washer_id, orders.status))
+        INSERT INTO orders (id, client_id, services, washer_id, status, order_time)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """, (orders.id, orders.client_id, orders.services, orders.washer_id, orders.status, orders.order_time))
         self.commit()
 
     def update(self, orders):
         self.cursor.execute("""
         UPDATE orders
-        SET client_id=?, services=?, washer_id=?, status=?
+        SET client_id=?, services=?, washer_id=?, status=?, order_time=?
         WHERE id=?
-        """, (orders.client_id, orders.services, orders.washer_id, orders.status, orders.id))
+        """, (orders.client_id, orders.services, orders.washer_id, orders.status, orders.order_time, orders.id))
         self.commit()
 
     def delete(self, id):
         self.cursor.execute("DELETE FROM orders WHERE id=?", (id,))
         self.commit()
+
 
 class ScheduleRepository(BaseRepository):
     def __init__(self, db_path):

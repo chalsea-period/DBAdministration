@@ -28,6 +28,10 @@ class ValidateRegEx:
         return text in ('awaiting', 'cancelled', 'completed')
 
     @staticmethod
+    def is_str_time(text):
+        return text in ('8am', '9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm')
+
+    @staticmethod
     def is_invalid(text, type):
         if type == "INTEGER" or type == "smallmoney":
             return not ValidateRegEx.is_integer(text)
@@ -39,6 +43,8 @@ class ValidateRegEx:
             return not ValidateRegEx.is_phone_number(text)
         elif type == "STATUS":
             return not ValidateRegEx.is_status(text)
+        elif type == "STRTIME":
+            return not ValidateRegEx.is_str_time(text)
         if text == "":
             return True
         return False
@@ -218,6 +224,8 @@ class OrderController(BaseController):
         current_type = self.attr_types[column]
         if self.attr_names[column] == "status":
             current_type = "STATUS"
+        elif self.attr_names[column] == "order_time":
+            current_type = "STRTIME"
         elif self.attr_names[column] == "washer_id" and not self.validation.is_invalid(text, current_type):
             return int(text) not in self.repo.fetch_washer_id_list()
         elif self.attr_names[column] == "client_id" and not self.validation.is_invalid(text, current_type):

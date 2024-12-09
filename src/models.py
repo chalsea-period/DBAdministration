@@ -28,12 +28,13 @@ class services:
 
 
 class orders:
-    def __init__(self, id, client_id, services, washer_id, status):
+    def __init__(self, id, client_id, services, washer_id, status, order_time):
         self.id = id
         self.client_id = client_id
         self.services = services
         self.washer_id = washer_id
         self.status = status
+        self.order_time = order_time
 
 
 class schedule:

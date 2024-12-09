@@ -51,6 +51,7 @@ def recreate_all(db_path):
             services varchar(20) not null,
             washer_id integer not null,
             status varchar(15) default 'awaiting',
+            order_time varchar(15) not null,
             constraint client_fk foreign key (client_id) references clients(id),
             constraint washer_fk foreign key (washer_id) references washers(id)
         )
@@ -120,16 +121,16 @@ def insert_initial_data(db_path):
         service_repo.insert(service)
 
     orders_data = [
-        orders(None, 1, 'Car Wash', 1, 'completed'),
-        orders(None, 2, 'Interior Cleaning', 2, 'awaiting'),
-        orders(None, 3, 'Full Detail', 3, 'completed'),
-        orders(None, 4, 'Car Wash', 4, 'awaiting'),
-        orders(None, 5, 'Interior Cleaning', 5, 'completed'),
-        orders(None, 6, 'Full Detail', 1, 'awaiting'),
-        orders(None, 7, 'Car Wash', 2, 'completed'),
-        orders(None, 8, 'Interior Cleaning', 3, 'awaiting'),
-        orders(None, 9, 'Full Detail', 4, 'completed'),
-        orders(None, 10, 'Car Wash', 5, 'awaiting')
+        orders(None, 1, 'Car Wash', 1, 'completed', '8am'),
+        orders(None, 2, 'Interior Cleaning', 2, 'awaiting', '9am'),
+        orders(None, 3, 'Full Detail', 3, 'completed', '10am'),
+        orders(None, 4, 'Car Wash', 4, 'awaiting', '11am'),
+        orders(None, 5, 'Interior Cleaning', 5, 'completed', '12am'),
+        orders(None, 6, 'Full Detail', 1, 'awaiting', '1pm'),
+        orders(None, 7, 'Car Wash', 2, 'completed', '2pm'),
+        orders(None, 8, 'Interior Cleaning', 3, 'awaiting', '3pm'),
+        orders(None, 9, 'Full Detail', 4, 'completed', '4pm'),
+        orders(None, 10, 'Car Wash', 5, 'awaiting', '5pm')
     ]
     for order in orders_data:
         order_repo.insert(order)
