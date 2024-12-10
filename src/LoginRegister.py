@@ -1,8 +1,5 @@
 from PySide6.QtWidgets import (QMainWindow, QVBoxLayout, QWidget, QLabel, QLineEdit, QFormLayout,
                                QTabWidget, QPushButton, QMessageBox)
-from PySide6.QtCore import Qt
-from GeniusInterface import AdminInterface
-from user_interface import UserInterface
 
 
 class LoginInterface(QMainWindow):
@@ -66,6 +63,8 @@ class LoginInterface(QMainWindow):
                 self.admin_window.show()
             else:
                 self.hide()
+                client_id = self.auth_controller.get_client_id(login)
+                self.user_window.set_client_id(client_id)
                 self.user_window.show()
         else:
             QMessageBox.warning(self, "Error", "User is not valid")
@@ -73,4 +72,10 @@ class LoginInterface(QMainWindow):
     def register(self):
         login = self.login_edit_register.text()
         password = self.password_edit_register.text()
+        if not self.auth_controller.check_valid_user(login, password):
+            QMessageBox.warning(self, "Error", "User is exists")
         self.auth_controller.register_user(login, password)
+
+    def closeEvent(self, event):
+        self.auth_controller.repo.close()
+        event.accept()

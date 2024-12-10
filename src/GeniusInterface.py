@@ -1,6 +1,5 @@
 from PySide6.QtWidgets import (QMainWindow, QVBoxLayout, QWidget, QLabel, QLineEdit, QPushButton,
                                QTableWidget, QTableWidgetItem, QMessageBox, QTabWidget, QHBoxLayout, QDialog)
-from PySide6.QtCore import Qt
 
 
 class FilterDialog(QDialog):
@@ -149,10 +148,6 @@ class TableManager(QWidget):
             QMessageBox.warning(self, "Error", "You selected a primary key")
             self.load_records()
             return
-        if not self.controller.validate_edit_permission(selected_col):
-            QMessageBox.warning(self, "Error", "You don't have sufficient permissions to edit this cell")
-            self.load_records()
-            return
 
         values = [self.table.item(selected_row, col).text() for col in range(self.table.columnCount())]
         is_valid, error_text = self.controller.validate_record_types(values)
@@ -246,6 +241,7 @@ class ScheduleManager(TableManager):
     def filter_by_washer(self):
         washer_id = self.washer_input.text()
         self.filter_records("washer_id", "=" + washer_id, "", "")
+
 
 class AdminInterface(QMainWindow):
     def __init__(self, controllers):

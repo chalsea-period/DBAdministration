@@ -121,9 +121,6 @@ class BaseController:
     def validate_record_types(self, record):
         raise NotImplementedError("Subclasses must implement this method")
 
-    def validate_edit_permission(self, selected_col):
-        raise NotImplementedError("Subclasses must implement this method")
-
 
 class ClientController(BaseController):
     def __init__(self, client_repo):
@@ -148,9 +145,6 @@ class ClientController(BaseController):
                 return False, "Invalid type of " + self.attr_names[col]
         return True, "All good"
 
-    def validate_edit_permission(self, selected_col):
-        return True
-
 
 class WasherController(BaseController):
     def __init__(self, washer_repo):
@@ -173,12 +167,6 @@ class WasherController(BaseController):
             if self.is_invalid_type(record[col], col):
                 return False, "Invalid type of " + self.attr_names[col]
         return True, "All good"
-
-    def validate_edit_permission(self, selected_col):
-        # current_col_name = self.attr_names[selected_col]
-        # if current_col_name == "price" or current_col_name == "available_place":
-        #     return False
-        return True
 
 
 class ServiceController(BaseController):
@@ -205,12 +193,6 @@ class ServiceController(BaseController):
             if self.is_invalid_type(record[col], col):
                 return False, "Invalid type of " + self.attr_names[col]
         return True, "All good"
-
-    def validate_edit_permission(self, selected_col):
-        # current_col_name = self.attr_names[selected_col]
-        # if current_col_name == "people_number" or current_col_name == "total_price":
-        #     return False
-        return True
 
 
 class OrderController(BaseController):
@@ -241,12 +223,6 @@ class OrderController(BaseController):
             if self.is_invalid_type(record[col], col):
                 return False, "Invalid type of " + self.attr_names[col]
         return True, "All good"
-
-    def validate_edit_permission(self, selected_col):
-        # current_col_name = self.attr_names[selected_col]
-        # if current_col_name == "amount":
-        #     return False
-        return True
 
 
 class ScheduleController(BaseController):
@@ -281,16 +257,13 @@ class ScheduleController(BaseController):
                 return False, "Invalid type of " + self.attr_names[col]
         return True, "All good"
 
-    def validate_edit_permission(self, selected_col):
-        # current_col_name = self.attr_names[selected_col]
-        # if current_col_name == "amount":
-        #     return False
-        return True
-
 
 class AuthController:
     def __init__(self, auth_repo):
         self.repo = auth_repo
+
+    def get_client_id(self, login):
+        return self.repo.fetch_client_id(login)
 
     def check_valid_user(self, login, password):
         return self.repo.check_valid_user(login, password)

@@ -20,7 +20,7 @@ def recreate_all(db_path):
             id integer primary key,
             name varchar(50) not null,
             email varchar(50) null,
-            phone varchar(15) not null unique,
+            phone varchar(15) not null,
             reg_date date not null,
             birth_date date null,
             admin integer not null,

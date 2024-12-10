@@ -258,6 +258,11 @@ class AuthRepository:
     def close(self):
         self.conn.close()
 
+    def fetch_client_id(self, login):
+        self.cursor.execute("""SELECT id FROM clients WHERE login=?""", (login,))
+        row = self.cursor.fetchone()
+        return row[0]
+
     def check_valid_user(self, login, password):
         try:
             self.cursor.execute("""SELECT 1 FROM clients WHERE login=? AND password=?""", (login, password))

@@ -1,11 +1,7 @@
 from PySide6.QtWidgets import (QMainWindow, QVBoxLayout, QWidget, QLabel, QLineEdit, QPushButton, QFormLayout,
                                QTableWidget, QTableWidgetItem, QMessageBox, QTabWidget, QHBoxLayout, QDialog)
-from PySide6.QtCore import Qt
-import sys
-from PySide6.QtWidgets import QApplication
 from GeniusInterface import ScheduleManager
-from repositories import ClientRepository, WasherRepository, ServiceRepository, OrderRepository,ScheduleRepository
-from controllers import ClientController, WasherController, ServiceController, OrderController, ScheduleController
+from models import orders
 
 
 class UserScheduleManager(ScheduleManager):
@@ -36,13 +32,15 @@ class UserScheduleManager(ScheduleManager):
 
 
 class UserInterface(QMainWindow):
-    def __init__(self, services_controller, schedule_controller):
+    def __init__(self, controllers):
         super().__init__()
         self.setWindowTitle("Client Interface")
         self.setGeometry(100, 100, 800, 600)
 
-        self.services_controller = services_controller
-        self.schedule_controller = schedule_controller
+        self.services_controller = controllers["services"]
+        self.schedule_controller = controllers["schedule"]
+        self.washers_controller = controllers["washers"]
+        self.orders_controller = controllers["orders"]
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -51,8 +49,11 @@ class UserInterface(QMainWindow):
         self.tabs = QTabWidget()
         layout.addWidget(self.tabs)
         self.init_services()
+        self.init_washers()
         self.init_schedule()
         self.init_order()
+
+        self.client_id = -1
 
     def init_services(self):
         tab = QWidget()
@@ -68,6 +69,28 @@ class UserInterface(QMainWindow):
         layout.addWidget(self.table)
 
         records = self.services_controller.get_all()
+        self.table.setRowCount(len(records))
+        for row, record in enumerate(records):
+            for col, value in enumerate(record.__dict__.values()):
+                item = QTableWidgetItem(str(value))
+                self.table.setItem(row, col, item)
+
+        layout.addWidget(self.table)
+
+    def init_washers(self):
+        tab = QWidget()
+        self.tabs.addTab(tab, "washers")
+        layout = QVBoxLayout(tab)
+
+        # Таблица для отображения записей
+        self.table = QTableWidget()
+        self.table.setColumnCount(self.washers_controller.get_columns_count())
+        self.table.setHorizontalHeaderLabels(self.washers_controller.get_attr_names())
+        # Делаем таблицу неизменяемой
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        layout.addWidget(self.table)
+
+        records = self.washers_controller.get_all()
         self.table.setRowCount(len(records))
         for row, record in enumerate(records):
             for col, value in enumerate(record.__dict__.values()):
@@ -105,19 +128,21 @@ class UserInterface(QMainWindow):
         add_button.clicked.connect(self.make_order)
         layout.addWidget(add_button)
 
+    def set_client_id(self, client_id):
+        self.client_id = client_id
+
     def make_order(self):
-        pass
+        values = ["1", str(self.client_id), self.services_input.text(), self.washer_input.text(), "awaiting", self.time_input.text()]
+        is_valid, error_text = self.orders_controller.validate_record_types(values)
+        if not is_valid:
+            QMessageBox.warning(self, "Error", error_text)
+            return
 
+        order = orders(None, *values[1:])
+        self.orders_controller.add(order)
+        QMessageBox.information(self, "Success", "Order was accepted")
 
-if __name__ == '__main__':
-    db_path = "../databases/auto_washer.db"
-    service_repo = ServiceRepository(db_path)
-    schedule_repo = ScheduleRepository(db_path)
-
-    service_controller = ServiceController(service_repo)
-    schedule_controller = ScheduleController(schedule_repo)
-
-    app = QApplication(sys.argv)
-    window = UserInterface(service_controller, schedule_controller)
-    window.show()
-    sys.exit(app.exec())
+    def closeEvent(self, event):
+        for controller in [self.services_controller, self.schedule_controller]:
+            controller.repo.close()
+        event.accept()

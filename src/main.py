@@ -24,10 +24,17 @@ if __name__ == "__main__":
         "schedule": ScheduleController(schedule_repo)
     }
 
+    user_controllers = {
+        "washers": WasherController(washer_repo),
+        "services": ServiceController(service_repo),
+        "orders": OrderController(order_repo),
+        "schedule": ScheduleController(schedule_repo)
+    }
+
     app = QApplication(sys.argv)
     login_window = LoginInterface(AuthController(auth_repo))
     admin_window=AdminInterface(admin_controllers)
-    user_window=UserInterface(ServiceController(service_repo),ScheduleController(schedule_repo))
+    user_window=UserInterface(user_controllers)
     login_window.set_windows(admin_window,user_window)
     login_window.show()
     sys.exit(app.exec())
