@@ -129,6 +129,9 @@ class ClientController(BaseController):
     def get_model(self, *args):
         return clients(*args)
 
+    def get_by_id(self, client_id):
+        return self.repo.fetch_by_id(client_id)
+
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
         if self.attr_names[column] == "phone":

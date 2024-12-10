@@ -243,8 +243,80 @@ class ScheduleManager(TableManager):
         self.filter_records("washer_id", "=" + washer_id, "", "")
 
 
+class AccountManager(QWidget):
+    def __init__(self, controller, exit_func, parent=None):
+        super().__init__(parent)
+
+        self.client_id = -1
+        self.controller = controller
+        self.columns = controller.get_attr_names()
+
+        layout = QVBoxLayout(self)
+        self.init_table(layout)
+        self.init_change(layout)
+        self.init_exit(layout, exit_func)
+        self.load_records()
+
+    def set_id(self, id):
+        self.client_id = id
+        self.load_records()
+
+    def init_change(self, layout):
+        # Кнопка для редактирования
+        edit_button = QPushButton("Edit Selected")
+        edit_button.clicked.connect(self.edit_record)
+        layout.addWidget(edit_button)
+
+    def init_exit(self, layout, exit_func):
+        exit_button = QPushButton("Exit")
+        exit_button.clicked.connect(exit_func)
+        layout.addWidget(exit_button)
+
+    def init_table(self, layout):
+        self.table = QTableWidget()
+        self.table.setColumnCount(self.controller.get_columns_count()-3)
+        self.table.setHorizontalHeaderLabels(self.controller.get_attr_names())
+        layout.addWidget(self.table)
+
+    def load_records(self):
+        if self.client_id == -1:
+            return
+        record = self.controller.get_by_id(self.client_id)
+        self.update_table([record])
+
+    def update_table(self, records):
+        self.table.setRowCount(len(records))
+        for row, record in enumerate(records):
+            for col, value in enumerate(record.__dict__.values()):
+                item = QTableWidgetItem(str(value))
+                self.table.setItem(row, col, item)
+
+    def edit_record(self):
+        selected_row = self.table.currentRow()
+        selected_col = self.table.currentColumn()
+        if selected_row == -1:
+            QMessageBox.warning(self, "Error", "Please select a record to edit.")
+            return
+        if self.controller.validate_primary_key_cols(selected_col):
+            QMessageBox.warning(self, "Error", "You selected a primary key")
+            self.load_records()
+            return
+
+        values = [self.table.item(selected_row, col).text() for col in range(self.table.columnCount())]
+        is_valid, error_text = self.controller.validate_record_types(values)
+        if not is_valid:
+            QMessageBox.warning(self, "Error", error_text)
+            self.load_records()
+            return
+
+        model = self.controller.get_model(*values)
+        self.controller.update(model)
+        self.load_records()
+        QMessageBox.information(self, "Success", f"{self.controller.table_name} updated successfully!")
+
+
 class AdminInterface(QMainWindow):
-    def __init__(self, controllers):
+    def __init__(self, controllers, exit_func):
         super().__init__()
         self.setWindowTitle("Admin Interface")
         self.setGeometry(100, 100, 800, 600)
@@ -257,14 +329,26 @@ class AdminInterface(QMainWindow):
         self.tabs = QTabWidget()
         layout.addWidget(self.tabs)
 
+        self.exit_func = exit_func
+        self.init_tab("account", controllers["clients"])
         for table_name, controller in self.controllers.items():
             self.init_tab(table_name, controller)
+
+        self.client_id = -1
+
+    def set_id(self, id):
+        self.client_id = id
+        self.account_manager.set_id(id)
 
     def init_tab(self, tab_name, controller):
         tab = QWidget()
         self.tabs.addTab(tab, tab_name)
         layout = QVBoxLayout(tab)
 
+        if tab_name == "account":
+            self.account_manager = AccountManager(controller, self.exit_func)
+            layout.addWidget(self.account_manager)
+            return
         if tab_name == "clients":
             client_manager = ClientManager(controller)
             layout.addWidget(client_manager)

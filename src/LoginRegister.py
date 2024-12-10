@@ -60,6 +60,8 @@ class LoginInterface(QMainWindow):
         if self.auth_controller.check_valid_user(login, password):
             if self.auth_controller.check_if_admin(login):
                 self.hide()
+                client_id = self.auth_controller.get_client_id(login)
+                self.admin_window.set_id(client_id)
                 self.admin_window.show()
             else:
                 self.hide()
@@ -76,6 +78,19 @@ class LoginInterface(QMainWindow):
             QMessageBox.warning(self, "Error", "User is exists")
             return
         self.auth_controller.register_user(login, password)
+        QMessageBox.information(self, "Success", "The user has been registered.")
+
+    def exit(self):
+        if self.admin_window.isVisible():
+            self.admin_window.hide()
+        elif self.user_window.isVisible():
+            self.user_window.hide()
+        self.show()
+
+        self.login_edit_login.clear()
+        self.password_edit_login.clear()
+        self.login_edit_register.clear()
+        self.password_edit_register.clear()
 
     def closeEvent(self, event):
         self.auth_controller.repo.close()

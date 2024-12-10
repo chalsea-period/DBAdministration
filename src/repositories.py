@@ -85,6 +85,11 @@ class ClientRepository(BaseRepository):
         rows = self.cursor.fetchall()
         return [clients(*row) for row in rows]
 
+    def fetch_by_id(self, client_id):
+        self.cursor.execute("SELECT * FROM clients WHERE id=?", (client_id,))
+        row = self.cursor.fetchone()
+        return clients(*row) if row else None
+
     def insert(self, client):
         self.cursor.execute("""
         INSERT INTO clients (name, email, phone, reg_date, birth_date, admin, login, password)

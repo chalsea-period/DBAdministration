@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (QMainWindow, QVBoxLayout, QWidget, QLabel, QLineEdit, QPushButton, QFormLayout,
                                QTableWidget, QTableWidgetItem, QMessageBox, QTabWidget, QHBoxLayout, QDialog)
-from GeniusInterface import ScheduleManager
+from GeniusInterface import ScheduleManager, AccountManager
 from models import orders
 
 
@@ -32,7 +32,7 @@ class UserScheduleManager(ScheduleManager):
 
 
 class UserInterface(QMainWindow):
-    def __init__(self, controllers):
+    def __init__(self, controllers, exit_func):
         super().__init__()
         self.setWindowTitle("Client Interface")
         self.setGeometry(100, 100, 800, 600)
@@ -41,6 +41,7 @@ class UserInterface(QMainWindow):
         self.schedule_controller = controllers["schedule"]
         self.washers_controller = controllers["washers"]
         self.orders_controller = controllers["orders"]
+        self.clietn_controller = controllers["clients"]
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -48,12 +49,21 @@ class UserInterface(QMainWindow):
 
         self.tabs = QTabWidget()
         layout.addWidget(self.tabs)
+        self.init_account(exit_func)
         self.init_services()
         self.init_washers()
         self.init_schedule()
         self.init_order()
 
         self.client_id = -1
+
+    def init_account(self, exit_func):
+        tab = QWidget()
+        self.tabs.addTab(tab, "account")
+        layout = QVBoxLayout(tab)
+
+        self.account_manager = AccountManager(self.clietn_controller, exit_func)
+        layout.addWidget(self.account_manager)
 
     def init_services(self):
         tab = QWidget()
@@ -113,7 +123,7 @@ class UserInterface(QMainWindow):
         layout = QFormLayout(tab)
 
         self.services_input = QLineEdit(self)
-        self.services_input.setPlaceholderText("")
+        self.services_input.setPlaceholderText("TEXT")
         layout.addRow("services", self.services_input)
 
         self.washer_input = QLineEdit(self)
@@ -134,6 +144,7 @@ class UserInterface(QMainWindow):
 
     def set_client_id(self, client_id):
         self.client_id = client_id
+        self.account_manager.set_id(client_id)
 
     def make_order(self):
         values = ["1", str(self.client_id), self.services_input.text(), self.washer_input.text(), "awaiting",
