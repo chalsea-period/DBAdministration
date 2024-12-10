@@ -174,6 +174,11 @@ class OrderRepository(BaseRepository):
         rows = self.cursor.fetchall()
         return [orders(*row) for row in rows]
 
+    def fetch_work_and_washer_list(self):
+        self.cursor.execute("SELECT work_day, washer_id FROM schedule")
+        rows = self.cursor.fetchall()
+        return rows
+
     def fetch_washer_id_list(self):
         self.cursor.execute("SELECT id FROM washers")
         rows = self.cursor.fetchall()
@@ -186,17 +191,17 @@ class OrderRepository(BaseRepository):
 
     def insert(self, orders):
         self.cursor.execute("""
-        INSERT INTO orders (id, client_id, services, washer_id, status, order_time)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """, (orders.id, orders.client_id, orders.services, orders.washer_id, orders.status, orders.order_time))
+        INSERT INTO orders (id, client_id, services, washer_id, status, order_data, order_time)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (orders.id, orders.client_id, orders.services, orders.washer_id, orders.status, orders.order_data, orders.order_time))
         self.commit()
 
     def update(self, orders):
         self.cursor.execute("""
         UPDATE orders
-        SET client_id=?, services=?, washer_id=?, status=?, order_time=?
+        SET client_id=?, services=?, washer_id=?, status=?, order_data=?, order_time=?
         WHERE id=?
-        """, (orders.client_id, orders.services, orders.washer_id, orders.status, orders.order_time, orders.id))
+        """, (orders.client_id, orders.services, orders.washer_id, orders.status, orders.order_data, orders.order_time, orders.id))
         self.commit()
 
     def delete(self, id):
@@ -212,6 +217,12 @@ class ScheduleRepository(BaseRepository):
         self.cursor.execute("SELECT * FROM schedule")
         rows = self.cursor.fetchall()
         return [schedule(*row) for row in rows]
+
+    def fetch_by_pk(self, work_day, washer_id):
+        self.cursor.execute("SELECT * FROM schedule WHERE work_day=? AND washer_id=?", (work_day, washer_id))
+        row = self.cursor.fetchone()
+        print(row)
+        return schedule(*row)
 
     def fetch_last_work_day(self, washer_id):
         self.cursor.execute("SELECT work_day FROM schedule WHERE washer_id=? ORDER BY work_day DESC",

@@ -104,8 +104,8 @@ class UserInterface(QMainWindow):
         self.tabs.addTab(tab, "schedule")
         layout = QVBoxLayout(tab)
 
-        schedule_manager = UserScheduleManager(self.schedule_controller)
-        layout.addWidget(schedule_manager)
+        self.schedule_manager = UserScheduleManager(self.schedule_controller)
+        layout.addWidget(self.schedule_manager)
 
     def init_order(self):
         tab = QWidget()
@@ -120,6 +120,10 @@ class UserInterface(QMainWindow):
         self.washer_input.setPlaceholderText("INTEGER")
         layout.addRow("washer_id", self.washer_input)
 
+        self.day_input = QLineEdit(self)
+        self.day_input.setPlaceholderText("DATE (YYYY-MM-DD)")
+        layout.addRow("work_day", self.day_input)
+
         self.time_input = QLineEdit(self)
         self.time_input.setPlaceholderText("8am-6pm")
         layout.addRow("Time", self.time_input)
@@ -132,7 +136,8 @@ class UserInterface(QMainWindow):
         self.client_id = client_id
 
     def make_order(self):
-        values = ["1", str(self.client_id), self.services_input.text(), self.washer_input.text(), "awaiting", self.time_input.text()]
+        values = ["1", str(self.client_id), self.services_input.text(), self.washer_input.text(), "awaiting",
+                  self.day_input.text(), self.time_input.text()]
         is_valid, error_text = self.orders_controller.validate_record_types(values)
         if not is_valid:
             QMessageBox.warning(self, "Error", error_text)
@@ -140,6 +145,10 @@ class UserInterface(QMainWindow):
 
         order = orders(None, *values[1:])
         self.orders_controller.add(order)
+        schedule_record = self.schedule_controller.get_record_by_pk(self.day_input.text(), self.washer_input.text())
+        setattr(schedule_record, "hour_" + self.time_input.text(), 1)
+        self.schedule_controller.update(schedule_record)
+        self.schedule_manager.load_records()
         QMessageBox.information(self, "Success", "Order was accepted")
 
     def closeEvent(self, event):

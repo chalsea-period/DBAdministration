@@ -72,8 +72,9 @@ class LoginInterface(QMainWindow):
     def register(self):
         login = self.login_edit_register.text()
         password = self.password_edit_register.text()
-        if not self.auth_controller.check_valid_user(login, password):
+        if self.auth_controller.check_valid_user(login, password):
             QMessageBox.warning(self, "Error", "User is exists")
+            return
         self.auth_controller.register_user(login, password)
 
     def closeEvent(self, event):

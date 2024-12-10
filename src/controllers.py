@@ -219,9 +219,16 @@ class OrderController(BaseController):
     def validate_record_types(self, record):
         if len(record) != len(self.attr_names):
             record = [None, *record]
+        order_data, washer_id = None, None
         for col in range(1, len(record)):
             if self.is_invalid_type(record[col], col):
                 return False, "Invalid type of " + self.attr_names[col]
+            if self.attr_names[col] == "order_data":
+                order_data = record[col]
+            if self.attr_names[col] == "washer_id":
+                washer_id = record[col]
+        if (order_data, int(washer_id)) not in self.repo.fetch_work_and_washer_list():
+            return False, "This washer is not working that day"
         return True, "All good"
 
 
@@ -232,11 +239,14 @@ class ScheduleController(BaseController):
     def get_model(self, *args):
         return schedule(*args)
 
-    def fetch_last_work_day(self, washer_id):
+    def get_record_by_pk(self, work_day, washer_id):
+        return self.repo.fetch_by_pk(work_day, washer_id)
+
+    def get_last_work_day(self, washer_id):
         return self.repo.fetch_last_work_day(washer_id)
 
     def add(self, model):
-        last_work_day = self.fetch_last_work_day(model.washer_id)
+        last_work_day = self.get_last_work_day(model.washer_id)
         date = datetime.strptime(last_work_day, "%Y-%m-%d")
         next_day = date + timedelta(days=1)
         next_day_str = datetime.strftime(next_day, "%Y-%m-%d")
