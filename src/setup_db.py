@@ -1,5 +1,6 @@
 import sqlite3
-from repositories import ClientRepository, WasherRepository, ServiceRepository, OrderRepository,ScheduleRepository
+from repositories import (ClientRepository, WasherRepository, ServiceRepository, OrderRepository, ScheduleRepository,
+                          AuthRepository)
 from models import clients, washers, services, orders, schedule
 
 
@@ -25,7 +26,7 @@ def recreate_all(db_path):
             birth_date date null,
             admin integer not null,
             login varchar(50) not null,
-            password varchar(50) not null
+            password_hash varchar(50) not null
         )
     ''')
     cursor.execute('''

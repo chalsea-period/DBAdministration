@@ -1,4 +1,5 @@
 import sqlite3
+import bcrypt
 from models import clients,washers,services,orders,schedule
 
 
@@ -90,19 +91,28 @@ class ClientRepository(BaseRepository):
         row = self.cursor.fetchone()
         return clients(*row) if row else None
 
+    def hash_password(self, password):
+        if isinstance(password, str):
+            password = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password, salt)
+        return hashed
+
     def insert(self, client):
+        hashed_password = self.hash_password(client.password)
         self.cursor.execute("""
-        INSERT INTO clients (name, email, phone, reg_date, birth_date, admin, login, password)
+        INSERT INTO clients (name, email, phone, reg_date, birth_date, admin, login, password_hash)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.admin, client.login, client.password))
+        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.admin, client.login, hashed_password))
         self.commit()
 
     def update(self, client):
+        hashed_password = self.hash_password(client.password)
         self.cursor.execute("""
         UPDATE clients
-        SET name=?, email=?, phone=?, reg_date=?, birth_date=?, admin=?, login=?, password=?
+        SET name=?, email=?, phone=?, reg_date=?, birth_date=?, admin=?, login=?, password_hash=?
         WHERE id=?
-        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.admin, client.login, client.password, client.id))
+        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.admin, client.login, hashed_password, client.id))
         self.commit()
 
     def delete(self, id):
@@ -274,24 +284,37 @@ class AuthRepository:
     def close(self):
         self.conn.close()
 
+    def hash_password(self, password):
+        if isinstance(password, str):
+            password = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password, salt)
+        return hashed
+
+    def check_password(self, password, hashed_password):
+        return bcrypt.checkpw(password.encode('utf-8'), hashed_password)
+
     def fetch_client_id(self, login):
         self.cursor.execute("""SELECT id FROM clients WHERE login=?""", (login,))
         row = self.cursor.fetchone()
-        return row[0]
+        return row[0] if row else None
 
     def check_valid_user(self, login, password):
         try:
-            self.cursor.execute("""SELECT 1 FROM clients WHERE login=? AND password=?""", (login, password))
+            self.cursor.execute("""SELECT password_hash FROM clients WHERE login=?""", (login,))
             row = self.cursor.fetchone()
-            return row is not None
+            if row:
+                hashed_password = row[0]
+                return self.check_password(password, hashed_password)
+            return False
         except sqlite3.Error as e:
             print(f"Ошибка при проверке пользователя: {e}")
             return False
 
     def insert(self, client):
+        hashed_password = self.hash_password(client.password)
         self.cursor.execute("""
-        INSERT INTO clients (name, email, phone, reg_date, birth_date, admin, login, password)
+        INSERT INTO clients (name, email, phone, reg_date, birth_date, admin, login, password_hash)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.admin, client.login,
-              client.password))
+        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.admin, client.login, hashed_password))
         self.commit()
