@@ -31,6 +31,110 @@ class UserScheduleManager(ScheduleManager):
         return
 
 
+class UserAccountManager(QWidget):
+    def __init__(self, client_controller, orders_controller, exit_func, parent=None):
+        super().__init__(parent)
+
+        self.client_id = -1
+        self.client_controller = client_controller
+        self.client_columns = client_controller.get_attr_names()
+
+        self.order_controller = orders_controller
+        self.orders_columns = orders_controller.get_attr_names()
+
+        layout = QVBoxLayout(self)
+        self.init_user_data_section(layout)  # Инициализация секции с данными пользователя
+        self.init_orders_section(layout)     # Инициализация секции с заказами
+        self.init_change(layout)             # Инициализация кнопки редактирования
+        self.init_exit(layout, exit_func)    # Инициализация кнопки выхода
+        self.load_records()
+
+    def set_id(self, id):
+        self.client_id = id
+        self.load_records()
+
+    def init_user_data_section(self, layout):
+        # Лейбл для данных пользователя
+        user_data_label = QLabel("User Data")
+        layout.addWidget(user_data_label)
+
+        # Таблица для данных пользователя
+        self.user_data_table = QTableWidget()
+        self.user_data_table.setColumnCount(self.client_controller.get_columns_count() - 3)
+        self.user_data_table.setHorizontalHeaderLabels(self.client_controller.get_attr_names())
+        layout.addWidget(self.user_data_table)
+
+    def init_orders_section(self, layout):
+        # Лейбл для заказов
+        orders_label = QLabel("Orders")
+        layout.addWidget(orders_label)
+
+        # Таблица для заказов
+        self.orders_table = QTableWidget()
+        self.orders_table.setColumnCount(self.order_controller.get_columns_count())
+        self.orders_table.setHorizontalHeaderLabels(self.order_controller.get_attr_names())
+        layout.addWidget(self.orders_table)
+
+    def init_change(self, layout):
+        # Кнопка для редактирования
+        self.edit_button = QPushButton("Edit Selected")
+        self.edit_button.clicked.connect(self.edit_record)
+        layout.addWidget(self.edit_button)
+
+    def init_exit(self, layout, exit_func):
+        exit_button = QPushButton("Exit")
+        exit_button.clicked.connect(exit_func)
+        layout.addWidget(exit_button)
+
+    def load_records(self):
+        if self.client_id == -1:
+            return
+        user_record = self.client_controller.get_by_id(self.client_id)
+        self.update_table(self.user_data_table, [user_record])
+
+        orders_records = self.order_controller.get_by_client_id(self.client_id)
+        self.update_table(self.orders_table, orders_records)
+
+    def update_table(self, table, records):
+        table.setRowCount(len(records))
+        for row, record in enumerate(records):
+            for col, value in enumerate(record.__dict__.values()):
+                item = QTableWidgetItem(str(value))
+                table.setItem(row, col, item)
+
+    def edit_record(self):
+        # Определяем, какая таблица выбрана
+        if self.user_data_table.hasFocus():
+            selected_table = self.user_data_table
+        elif self.orders_table.hasFocus():
+            selected_table = self.orders_table
+        else:
+            QMessageBox.warning(self, "Error", "Please select a table to edit.")
+            return
+
+        selected_row = selected_table.currentRow()
+        selected_col = selected_table.currentColumn()
+        if selected_row == -1:
+            QMessageBox.warning(self, "Error", "Please select a record to edit.")
+            return
+        if self.controller.validate_primary_key_cols(selected_col):
+            QMessageBox.warning(self, "Error", "You selected a primary key")
+            self.load_records()
+            return
+
+        values = [selected_table.item(selected_row, col).text() for col in range(selected_table.columnCount())]
+        is_valid, error_text = self.controller.validate_record_types(values)
+        if not is_valid:
+            QMessageBox.warning(self, "Error", error_text)
+            self.load_records()
+            return
+
+        model = self.controller.get_model(*values)
+        self.controller.update(model)
+        self.load_records()
+        QMessageBox.information(self, "Success", f"{self.controller.table_name} updated successfully!")
+
+
 class UserInterface(QMainWindow):
     def __init__(self, controllers, exit_func):
         super().__init__()
@@ -41,7 +145,7 @@ class UserInterface(QMainWindow):
         self.schedule_controller = controllers["schedule"]
         self.washers_controller = controllers["washers"]
         self.orders_controller = controllers["orders"]
-        self.clietn_controller = controllers["clients"]
+        self.client_controller = controllers["clients"]
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -62,7 +166,7 @@ class UserInterface(QMainWindow):
         self.tabs.addTab(tab, "account")
         layout = QVBoxLayout(tab)
 
-        self.account_manager = AccountManager(self.clietn_controller, exit_func)
+        self.account_manager = UserAccountManager(self.client_controller, self.orders_controller, exit_func)
         layout.addWidget(self.account_manager)
 
     def init_services(self):
@@ -160,6 +264,7 @@ class UserInterface(QMainWindow):
         setattr(schedule_record, "hour_" + self.time_input.text(), 1)
         self.schedule_controller.update(schedule_record)
         self.schedule_manager.load_records()
+        self.account_manager.load_records()
         QMessageBox.information(self, "Success", "Order was accepted")
 
     def closeEvent(self, event):

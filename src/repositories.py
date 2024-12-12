@@ -189,6 +189,11 @@ class OrderRepository(BaseRepository):
         rows = self.cursor.fetchall()
         return [orders(*row) for row in rows]
 
+    def fetch_by_client_id(self, client_id):
+        self.cursor.execute("SELECT * FROM orders WHERE client_id=?", (client_id,))
+        rows = self.cursor.fetchall()
+        return [orders(*row) for row in rows]
+
     def fetch_work_and_washer_list(self):
         self.cursor.execute("SELECT work_day, washer_id FROM schedule")
         rows = self.cursor.fetchall()

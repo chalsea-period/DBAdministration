@@ -205,6 +205,9 @@ class OrderController(BaseController):
     def get_model(self, *args):
         return orders(*args)
 
+    def get_by_client_id(self, client_id):
+        return self.repo.fetch_by_client_id(client_id)
+
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
         if self.attr_names[column] == "status":
