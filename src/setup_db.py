@@ -58,8 +58,8 @@ def recreate_all(db_path):
             status varchar(15) default 'awaiting',
             order_data date not null,
             order_time varchar(15) not null,
-            constraint client_fk foreign key (client_id) references clients(id),
-            constraint washer_fk foreign key (washer_id) references washers(id)
+            constraint client_fk foreign key (client_id) references clients(id) ON DELETE CASCADE,
+            constraint washer_fk foreign key (washer_id) references washers(id) ON DELETE CASCADE
         )
     ''')
     cursor.execute('''
@@ -78,7 +78,7 @@ def recreate_all(db_path):
             "5pm" integer not null,
             "6pm" integer not null,
             constraint schedule_pk primary key (work_day, washer_id),
-            constraint washer_link foreign key (washer_id) references washers(id)
+            constraint washer_link foreign key (washer_id) references washers(id) ON DELETE CASCADE
         )
     ''')
     cursor.execute('''

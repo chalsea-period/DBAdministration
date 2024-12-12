@@ -1,5 +1,5 @@
 class Clients:
-    def __init__(self, id, name, email, phone, reg_date, birth_date, admin, login, password):
+    def __init__(self, id, name, email, phone, reg_date, birth_date, admin=0, login="", password=""):
         self.id = id
         self.name = name
         self.email = email

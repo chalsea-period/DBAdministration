@@ -40,6 +40,8 @@ class ValidateRegEx:
         elif type == "date":
             return not ValidateRegEx.is_date(text)
         elif type == "PHONE":
+            print(text)
+            print("WTF", not ValidateRegEx.is_phone_number(text))
             return not ValidateRegEx.is_phone_number(text)
         elif type == "STATUS":
             return not ValidateRegEx.is_status(text)
@@ -129,6 +131,13 @@ class ClientController(BaseController):
     def get_model(self, *args):
         return Clients(*args)
 
+    def update(self, client):
+        old_client = self.get_by_id(client.id)
+        client.admin = old_client.admin
+        client.login = old_client.login
+        client.password = old_client.password
+        self.repo.update(client)
+
     def get_by_id(self, client_id):
         return self.repo.fetch_by_id(client_id)
 
@@ -141,8 +150,9 @@ class ClientController(BaseController):
         return res
 
     def validate_record_types(self, record):
-        if len(record) != len(self.attr_names):
+        if len(record) != len(self.attr_names) - 3:
             record = [None, *record]
+        print(record, self.attr_names)
         for col in range(1, len(record)):
             if self.is_invalid_type(record[col], col):
                 return False, "Invalid type of " + self.attr_names[col]

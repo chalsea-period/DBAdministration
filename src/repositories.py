@@ -107,12 +107,11 @@ class ClientRepository(BaseRepository):
         self.commit()
 
     def update(self, client):
-        hashed_password = self.hash_password(client.password)
         self.cursor.execute("""
         UPDATE clients
         SET name=?, email=?, phone=?, reg_date=?, birth_date=?, admin=?, login=?, password_hash=?
         WHERE id=?
-        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.admin, client.login, hashed_password, client.id))
+        """, (client.name, client.email, client.phone, client.reg_date, client.birth_date, client.admin, client.login, client.password, client.id))
         self.commit()
 
     def delete(self, id):
