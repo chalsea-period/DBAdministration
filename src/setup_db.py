@@ -128,9 +128,9 @@ def insert_initial_data(db_path):
         Clients(None, 'Fiona Black', 'fiona.black@example.com', '+72345678970', '2023-10-08', '1987-04-12', 0,
                 'fiona_black', 'password151'),
         Clients(None, 'George Grey', 'george.grey@example.com', '+72345678980', '2023-10-09', '1992-06-20', 0,
-                'george_grey', 'password161'),
+                'grey.admin', '161'),
         Clients(None, 'Helen Yellow', 'helen.yellow@example.com', '+72345678990', '2023-10-10', '1984-10-08', 0,
-                'helen_yellow', 'password171')
+                'helen.admin', '171')
     ]
     for client in clients_data:
         client_repo.insert(client)

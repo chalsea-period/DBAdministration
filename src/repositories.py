@@ -213,7 +213,7 @@ class OrderRepository(BaseRepository):
         self.cursor.execute("""
         INSERT INTO orders (id, client_id, services, washer_id, status, order_data, order_time)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (orders.id, orders.client_id, orders.Services, orders.washer_id, orders.status, orders.order_data, orders.order_time))
+        """, (orders.id, orders.client_id, orders.services, orders.washer_id, orders.status, orders.order_data, orders.order_time))
         self.commit()
 
     def update(self, orders):
@@ -221,7 +221,7 @@ class OrderRepository(BaseRepository):
         UPDATE orders
         SET client_id=?, services=?, washer_id=?, status=?, order_data=?, order_time=?
         WHERE id=?
-        """, (orders.client_id, orders.Services, orders.washer_id, orders.status, orders.order_data, orders.order_time, orders.id))
+        """, (orders.client_id, orders.services, orders.washer_id, orders.status, orders.order_data, orders.order_time, orders.id))
         self.commit()
 
     def delete(self, id):

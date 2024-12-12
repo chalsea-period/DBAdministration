@@ -262,6 +262,8 @@ class ScheduleController(BaseController):
 
     def is_invalid_type(self, text, column):
         current_type = "BOOL"
+        if column == 0 or column == 1:
+            current_type = self.attr_types[column]
         res = self.validation.is_invalid(text, current_type)
         return res
 
