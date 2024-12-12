@@ -127,7 +127,7 @@ class ClientController(BaseController):
         super().__init__("clients", client_repo)
 
     def get_model(self, *args):
-        return clients(*args)
+        return Clients(*args)
 
     def get_by_id(self, client_id):
         return self.repo.fetch_by_id(client_id)
@@ -154,7 +154,7 @@ class WasherController(BaseController):
         super().__init__("washers", washer_repo)
 
     def get_model(self, *args):
-        return washers(*args)
+        return Washers(*args)
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
@@ -177,7 +177,7 @@ class ServiceController(BaseController):
         super().__init__("services", service_repo)
 
     def get_model(self, *args):
-        return services(*args)
+        return Services(*args)
 
     def is_invalid_type(self, text, column):
         current_type = self.attr_types[column]
@@ -203,7 +203,7 @@ class OrderController(BaseController):
         super().__init__("orders", payment_repo)
 
     def get_model(self, *args):
-        return orders(*args)
+        return Orders(*args)
 
     def get_by_client_id(self, client_id):
         return self.repo.fetch_by_client_id(client_id)
@@ -243,7 +243,7 @@ class ScheduleController(BaseController):
         super().__init__("schedule", schedule_repo)
 
     def get_model(self, *args):
-        return schedule(*args)
+        return Schedule(*args)
 
     def get_record_by_pk(self, work_day, washer_id):
         return self.repo.fetch_by_pk(work_day, washer_id)
@@ -330,6 +330,6 @@ class AuthController:
         return login[-6:] == ".admin"
 
     def register_user(self, login, password):
-        client = clients(None, "a", "a", "+71234567890", "1111-11-11",
+        client = Clients(None, "a", "a", "+71234567890", "1111-11-11",
                          "1111-11-11", self.check_if_admin(login), login, password)
         return self.repo.insert(client)

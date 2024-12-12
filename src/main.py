@@ -2,8 +2,8 @@ import sys
 from PySide6.QtWidgets import QApplication
 from repositories import *
 from controllers import *
-from GeniusInterface import AdminInterface
-from LoginRegister import LoginInterface
+from genius_interface import AdminInterface
+from login_register import LoginInterface
 from user_interface import UserInterface
 
 

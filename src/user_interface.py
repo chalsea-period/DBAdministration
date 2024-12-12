@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (QMainWindow, QVBoxLayout, QWidget, QLabel, QLineEdit, QPushButton, QFormLayout,
                                QTableWidget, QTableWidgetItem, QMessageBox, QTabWidget, QHBoxLayout, QDialog)
-from GeniusInterface import ScheduleManager, AccountManager
-from models import orders
+from genius_interface import ScheduleManager, AccountManager
+from models import Orders
 
 
 class UserScheduleManager(ScheduleManager):
@@ -258,7 +258,7 @@ class UserInterface(QMainWindow):
             QMessageBox.warning(self, "Error", error_text)
             return
 
-        order = orders(None, *values[1:])
+        order = Orders(None, *values[1:])
         self.orders_controller.add(order)
         schedule_record = self.schedule_controller.get_record_by_pk(self.day_input.text(), self.washer_input.text())
         setattr(schedule_record, "hour_" + self.time_input.text(), 1)

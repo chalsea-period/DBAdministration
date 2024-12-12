@@ -84,12 +84,12 @@ class ClientRepository(BaseRepository):
     def fetch_all(self):
         self.cursor.execute("SELECT * FROM clients")
         rows = self.cursor.fetchall()
-        return [clients(*row) for row in rows]
+        return [Clients(*row) for row in rows]
 
     def fetch_by_id(self, client_id):
         self.cursor.execute("SELECT * FROM clients WHERE id=?", (client_id,))
         row = self.cursor.fetchone()
-        return clients(*row) if row else None
+        return Clients(*row) if row else None
 
     def hash_password(self, password):
         if isinstance(password, str):
@@ -127,7 +127,7 @@ class WasherRepository(BaseRepository):
     def fetch_all(self):
         self.cursor.execute("SELECT * FROM washers")
         rows = self.cursor.fetchall()
-        return [washers(*row) for row in rows]
+        return [Washers(*row) for row in rows]
     
     def insert(self, washers):
         self.cursor.execute("""
@@ -158,7 +158,7 @@ class ServiceRepository(BaseRepository):
     def fetch_all(self):
         self.cursor.execute("SELECT * FROM services")
         rows = self.cursor.fetchall()
-        return [services(*row) for row in rows]
+        return [Services(*row) for row in rows]
 
     def insert(self, service):
         self.cursor.execute("""
@@ -187,12 +187,12 @@ class OrderRepository(BaseRepository):
     def fetch_all(self):
         self.cursor.execute("SELECT * FROM orders")
         rows = self.cursor.fetchall()
-        return [orders(*row) for row in rows]
+        return [Orders(*row) for row in rows]
 
     def fetch_by_client_id(self, client_id):
         self.cursor.execute("SELECT * FROM orders WHERE client_id=?", (client_id,))
         rows = self.cursor.fetchall()
-        return [orders(*row) for row in rows]
+        return [Orders(*row) for row in rows]
 
     def fetch_work_and_washer_list(self):
         self.cursor.execute("SELECT work_day, washer_id FROM schedule")
@@ -213,7 +213,7 @@ class OrderRepository(BaseRepository):
         self.cursor.execute("""
         INSERT INTO orders (id, client_id, services, washer_id, status, order_data, order_time)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (orders.id, orders.client_id, orders.services, orders.washer_id, orders.status, orders.order_data, orders.order_time))
+        """, (orders.id, orders.client_id, orders.Services, orders.washer_id, orders.status, orders.order_data, orders.order_time))
         self.commit()
 
     def update(self, orders):
@@ -221,7 +221,7 @@ class OrderRepository(BaseRepository):
         UPDATE orders
         SET client_id=?, services=?, washer_id=?, status=?, order_data=?, order_time=?
         WHERE id=?
-        """, (orders.client_id, orders.services, orders.washer_id, orders.status, orders.order_data, orders.order_time, orders.id))
+        """, (orders.client_id, orders.Services, orders.washer_id, orders.status, orders.order_data, orders.order_time, orders.id))
         self.commit()
 
     def delete(self, id):
@@ -236,13 +236,13 @@ class ScheduleRepository(BaseRepository):
     def fetch_all(self):
         self.cursor.execute("SELECT * FROM schedule")
         rows = self.cursor.fetchall()
-        return [schedule(*row) for row in rows]
+        return [Schedule(*row) for row in rows]
 
     def fetch_by_pk(self, work_day, washer_id):
         self.cursor.execute("SELECT * FROM schedule WHERE work_day=? AND washer_id=?", (work_day, washer_id))
         row = self.cursor.fetchone()
         print(row)
-        return schedule(*row)
+        return Schedule(*row)
 
     def fetch_last_work_day(self, washer_id):
         self.cursor.execute("SELECT work_day FROM schedule WHERE washer_id=? ORDER BY work_day DESC",

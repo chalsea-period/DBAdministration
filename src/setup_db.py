@@ -1,6 +1,6 @@
 import sqlite3
 from repositories import *
-from models import clients, washers, services, orders, schedule
+from models import Clients, Washers, Services, Orders, Schedule
 
 
 def recreate_all(db_path):
@@ -111,74 +111,74 @@ def insert_initial_data(db_path):
     equipment_repo = EquipmentRepository(db_path)
 
     clients_data = [
-        clients(None, 'John Doe', 'john.doe@example.com', '+72345678900', '2023-10-01', '1980-05-15', 0, 'john_doe',
+        Clients(None, 'John Doe', 'john.doe@example.com', '+72345678900', '2023-10-01', '1980-05-15', 0, 'john_doe',
                 'password123'),
-        clients(None, 'Jane Smith', 'jane.smith@example.com', '+72345678910', '2023-10-02', '1985-08-22', 0,
+        Clients(None, 'Jane Smith', 'jane.smith@example.com', '+72345678910', '2023-10-02', '1985-08-22', 0,
                 'jane_smith', 'password456'),
-        clients(None, 'Alice Johnson', 'alice.johnson@example.com', '+72345678920', '2023-10-03', '1990-11-30', 0,
+        Clients(None, 'Alice Johnson', 'alice.johnson@example.com', '+72345678920', '2023-10-03', '1990-11-30', 0,
                 'alice_johnson', 'password789'),
-        clients(None, 'Bob Brown', 'bob.brown@example.com', '+72345678930', '2023-10-04', '1975-03-10', 0, 'bob_brown',
+        Clients(None, 'Bob Brown', 'bob.brown@example.com', '+72345678930', '2023-10-04', '1975-03-10', 0, 'bob_brown',
                 'password101'),
-        clients(None, 'Charlie Davis', 'charlie.davis@example.com', '+72345678940', '2023-10-05', '1982-07-25', 0,
+        Clients(None, 'Charlie Davis', 'charlie.davis@example.com', '+72345678940', '2023-10-05', '1982-07-25', 0,
                 'charlie_davis', 'password112'),
-        clients(None, 'Diana White', 'diana.white@example.com', '+72345678950', '2023-10-06', '1995-09-18', 0,
+        Clients(None, 'Diana White', 'diana.white@example.com', '+72345678950', '2023-10-06', '1995-09-18', 0,
                 'diana_white', 'password131'),
-        clients(None, 'Edward Green', 'edward.green@example.com', '+72345678960', '2023-10-07', '1978-12-05', 0,
+        Clients(None, 'Edward Green', 'edward.green@example.com', '+72345678960', '2023-10-07', '1978-12-05', 0,
                 'edward_green', 'password141'),
-        clients(None, 'Fiona Black', 'fiona.black@example.com', '+72345678970', '2023-10-08', '1987-04-12', 0,
+        Clients(None, 'Fiona Black', 'fiona.black@example.com', '+72345678970', '2023-10-08', '1987-04-12', 0,
                 'fiona_black', 'password151'),
-        clients(None, 'George Grey', 'george.grey@example.com', '+72345678980', '2023-10-09', '1992-06-20', 0,
+        Clients(None, 'George Grey', 'george.grey@example.com', '+72345678980', '2023-10-09', '1992-06-20', 0,
                 'george_grey', 'password161'),
-        clients(None, 'Helen Yellow', 'helen.yellow@example.com', '+72345678990', '2023-10-10', '1984-10-08', 0,
+        Clients(None, 'Helen Yellow', 'helen.yellow@example.com', '+72345678990', '2023-10-10', '1984-10-08', 0,
                 'helen_yellow', 'password171')
     ]
     for client in clients_data:
         client_repo.insert(client)
 
     washers_data = [
-        washers(None, 'Alice Johnson', 'alice.johnson@example.com', '+72345678920', '2020-01-01', '1990-11-30', 'Senior Washer'),
-        washers(None, 'Bob Brown', 'bob.brown@example.com', '+72345678930', '2018-05-15', '1975-03-10', 'Junior Washer'),
-        washers(None, 'Charlie Davis', 'charlie.davis@example.com', '+72345678940', '2019-07-20', '1982-07-25', 'Senior Washer'),
-        washers(None, 'Diana White', 'diana.white@example.com', '+72345678950', '2021-03-10', '1995-09-18', 'Junior Washer'),
-        washers(None, 'Edward Green', 'edward.green@example.com', '+72345678960', '2017-11-25', '1978-12-05', 'Senior Washer')
+        Washers(None, 'Alice Johnson', 'alice.johnson@example.com', '+72345678920', '2020-01-01', '1990-11-30', 'Senior Washer'),
+        Washers(None, 'Bob Brown', 'bob.brown@example.com', '+72345678930', '2018-05-15', '1975-03-10', 'Junior Washer'),
+        Washers(None, 'Charlie Davis', 'charlie.davis@example.com', '+72345678940', '2019-07-20', '1982-07-25', 'Senior Washer'),
+        Washers(None, 'Diana White', 'diana.white@example.com', '+72345678950', '2021-03-10', '1995-09-18', 'Junior Washer'),
+        Washers(None, 'Edward Green', 'edward.green@example.com', '+72345678960', '2017-11-25', '1978-12-05', 'Senior Washer')
     ]
     for washer in washers_data:
         washer_repo.insert(washer)
 
     services_data = [
-        services(None, 'Car Wash', 50.0, 60),
-        services(None, 'Interior Cleaning', 30.0, 45),
-        services(None, 'Full Detail', 100.0, 120)
+        Services(None, 'Car Wash', 50.0, 60),
+        Services(None, 'Interior Cleaning', 30.0, 45),
+        Services(None, 'Full Detail', 100.0, 120)
     ]
     for service in services_data:
         service_repo.insert(service)
 
     orders_data = [
-        orders(None, 1, 'Car Wash', 1, 'completed', '2023-10-01', '8am'),
-        orders(None, 2, 'Interior Cleaning', 2, 'awaiting', '2023-10-01', '9am'),
-        orders(None, 3, 'Full Detail', 3, 'completed', '2023-10-01', '10am'),
-        orders(None, 4, 'Car Wash', 4, 'awaiting', '2023-10-01', '11am'),
-        orders(None, 5, 'Interior Cleaning', 5, 'completed', '2023-10-01', '12am'),
-        orders(None, 6, 'Full Detail', 1, 'awaiting', '2023-10-01', '1pm'),
-        orders(None, 7, 'Car Wash', 2, 'completed', '2023-10-01', '2pm'),
-        orders(None, 8, 'Interior Cleaning', 3, 'awaiting', '2023-10-01', '3pm'),
-        orders(None, 9, 'Full Detail', 4, 'completed', '2023-10-01', '4pm'),
-        orders(None, 10, 'Car Wash', 5, 'awaiting', '2023-10-01', '5pm')
+        Orders(None, 1, 'Car Wash', 1, 'completed', '2023-10-01', '8am'),
+        Orders(None, 2, 'Interior Cleaning', 2, 'awaiting', '2023-10-01', '9am'),
+        Orders(None, 3, 'Full Detail', 3, 'completed', '2023-10-01', '10am'),
+        Orders(None, 4, 'Car Wash', 4, 'awaiting', '2023-10-01', '11am'),
+        Orders(None, 5, 'Interior Cleaning', 5, 'completed', '2023-10-01', '12am'),
+        Orders(None, 6, 'Full Detail', 1, 'awaiting', '2023-10-01', '1pm'),
+        Orders(None, 7, 'Car Wash', 2, 'completed', '2023-10-01', '2pm'),
+        Orders(None, 8, 'Interior Cleaning', 3, 'awaiting', '2023-10-01', '3pm'),
+        Orders(None, 9, 'Full Detail', 4, 'completed', '2023-10-01', '4pm'),
+        Orders(None, 10, 'Car Wash', 5, 'awaiting', '2023-10-01', '5pm')
     ]
     for order in orders_data:
         order_repo.insert(order)
 
     schedule_data = [
-        schedule('2023-10-01', 1),
-        schedule('2023-10-02', 2),
-        schedule('2023-10-03', 3),
-        schedule('2023-10-04', 4),
-        schedule('2023-10-05', 5),
-        schedule('2023-10-06', 1),
-        schedule('2023-10-07', 2),
-        schedule('2023-10-08', 3),
-        schedule('2023-10-09', 4),
-        schedule('2023-10-10', 5)
+        Schedule('2023-10-01', 1),
+        Schedule('2023-10-02', 2),
+        Schedule('2023-10-03', 3),
+        Schedule('2023-10-04', 4),
+        Schedule('2023-10-05', 5),
+        Schedule('2023-10-06', 1),
+        Schedule('2023-10-07', 2),
+        Schedule('2023-10-08', 3),
+        Schedule('2023-10-09', 4),
+        Schedule('2023-10-10', 5)
     ]
     for schedule_item in schedule_data:
         schedule_repo.insert(schedule_item)
