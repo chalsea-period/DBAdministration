@@ -57,3 +57,18 @@ class schedule:
         self.hour_4pm = hour_4pm
         self.hour_5pm = hour_5pm
         self.hour_6pm = hour_6pm
+
+
+class Workshop:
+    def __init__(self, id, name, address, equipment_list):
+        self.id = id
+        self.name = name
+        self.address = address
+        self.equipment_list = equipment_list
+
+
+class Equipment:
+    def __init__(self, id, name, status):
+        self.id = id
+        self.name = name
+        self.status = status

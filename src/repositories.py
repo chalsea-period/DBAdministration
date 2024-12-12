@@ -1,6 +1,6 @@
 import sqlite3
 import bcrypt
-from models import clients,washers,services,orders,schedule
+from models import *
 
 
 class BaseRepository:
@@ -274,6 +274,64 @@ class ScheduleRepository(BaseRepository):
 
     def delete(self, work_day):
         self.cursor.execute("DELETE FROM schedule WHERE work_day=?", (work_day,))
+        self.commit()
+
+
+class WorkshopRepository(BaseRepository):
+    def __init__(self, db_path):
+        super().__init__(db_path)
+
+    def fetch_all(self):
+        self.cursor.execute("SELECT * FROM workshops")
+        rows = self.cursor.fetchall()
+        return [Workshop(*row) for row in rows]
+
+    def insert(self, workshop):
+        self.cursor.execute("""
+        INSERT INTO workshops (name, address, equipment_list)
+        VALUES (?, ?, ?)
+        """, (workshop.name, workshop.address, workshop.equipment_list))
+        self.commit()
+
+    def update(self, workshop):
+        self.cursor.execute("""
+        UPDATE workshops
+        SET name=?, address=?, equipment_list=?
+        WHERE id=?
+        """, (workshop.name, workshop.address, workshop.equipment_list, workshop.id))
+        self.commit()
+
+    def delete(self, id):
+        self.cursor.execute("DELETE FROM workshops WHERE id=?", (id,))
+        self.commit()
+
+
+class EquipmentRepository(BaseRepository):
+    def __init__(self, db_path):
+        super().__init__(db_path)
+
+    def fetch_all(self):
+        self.cursor.execute("SELECT * FROM equipment")
+        rows = self.cursor.fetchall()
+        return [Equipment(*row) for row in rows]
+
+    def insert(self, equipment):
+        self.cursor.execute("""
+        INSERT INTO equipment (name, status)
+        VALUES (?, ?)
+        """, (equipment.name, equipment.status))
+        self.commit()
+
+    def update(self, equipment):
+        self.cursor.execute("""
+        UPDATE equipment
+        SET name=?, status=?
+        WHERE id=?
+        """, (equipment.name, equipment.status, equipment.id))
+        self.commit()
+
+    def delete(self, id):
+        self.cursor.execute("DELETE FROM equipment WHERE id=?", (id,))
         self.commit()
 
 

@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-from models import clients, washers, services, orders, schedule
+from models import *
 
 
 class ValidateRegEx:
@@ -262,6 +262,48 @@ class ScheduleController(BaseController):
 
     def is_invalid_type(self, text, column):
         current_type = "BOOL"
+        res = self.validation.is_invalid(text, current_type)
+        return res
+
+    def validate_record_types(self, record):
+        if len(record) != len(self.attr_names):
+            record = [None, *record]
+        for col in range(1, len(record)):
+            if self.is_invalid_type(record[col], col):
+                return False, "Invalid type of " + self.attr_names[col]
+        return True, "All good"
+
+
+class WorkshopController(BaseController):
+    def __init__(self, workshop_repo):
+        super().__init__("workshops", workshop_repo)
+
+    def get_model(self, *args):
+        return Workshop(*args)
+
+    def is_invalid_type(self, text, column):
+        current_type = self.attr_types[column]
+        res = self.validation.is_invalid(text, current_type)
+        return res
+
+    def validate_record_types(self, record):
+        if len(record) != len(self.attr_names):
+            record = [None, *record]
+        for col in range(1, len(record)):
+            if self.is_invalid_type(record[col], col):
+                return False, "Invalid type of " + self.attr_names[col]
+        return True, "All good"
+
+
+class EquipmentController(BaseController):
+    def __init__(self, equipment_repo):
+        super().__init__("equipment", equipment_repo)
+
+    def get_model(self, *args):
+        return Equipment(*args)
+
+    def is_invalid_type(self, text, column):
+        current_type = self.attr_types[column]
         res = self.validation.is_invalid(text, current_type)
         return res
 

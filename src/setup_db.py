@@ -1,6 +1,5 @@
 import sqlite3
-from repositories import (ClientRepository, WasherRepository, ServiceRepository, OrderRepository, ScheduleRepository,
-                          AuthRepository)
+from repositories import *
 from models import clients, washers, services, orders, schedule
 
 
@@ -15,6 +14,8 @@ def recreate_all(db_path):
     cursor.execute('DROP TABLE IF EXISTS schedule')
     cursor.execute('DROP TABLE IF EXISTS clients')
     cursor.execute('DROP TABLE IF EXISTS washers')
+    cursor.execute('DROP TABLE IF EXISTS workshops')
+    cursor.execute('DROP TABLE IF EXISTS equipment')
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS clients (
@@ -80,6 +81,21 @@ def recreate_all(db_path):
             constraint washer_link foreign key (washer_id) references washers(id)
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS workshops (
+            id INTEGER PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            address VARCHAR(255) NOT NULL,
+            equipment_list TEXT NULL
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS equipment (
+            id INTEGER PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            status VARCHAR(50) NOT NULL
+        )
+    ''')
 
     conn.commit()
     conn.close()
@@ -91,6 +107,8 @@ def insert_initial_data(db_path):
     service_repo = ServiceRepository(db_path)
     order_repo = OrderRepository(db_path)
     schedule_repo = ScheduleRepository(db_path)
+    workshop_repo = WorkshopRepository(db_path)
+    equipment_repo = EquipmentRepository(db_path)
 
     clients_data = [
         clients(None, 'John Doe', 'john.doe@example.com', '+72345678900', '2023-10-01', '1980-05-15', 0, 'john_doe',
@@ -164,6 +182,22 @@ def insert_initial_data(db_path):
     ]
     for schedule_item in schedule_data:
         schedule_repo.insert(schedule_item)
+
+    workshop_data = [
+        Workshop(None, 'Main Workshop', '123 Main St', 'Equipment1, Equipment2, Equipment3')
+    ]
+    for workshop in workshop_data:
+        workshop_repo.insert(workshop)
+
+    equipment_data = [
+        Equipment(None, 'Equipment1', 'Operational'),
+        Equipment(None, 'Equipment2', 'Under Maintenance'),
+        Equipment(None, 'Equipment3', 'Operational'),
+        Equipment(None, 'Equipment4', 'Out of Order'),
+        Equipment(None, 'Equipment5', 'Operational')
+    ]
+    for equipment in equipment_data:
+        equipment_repo.insert(equipment)
 
 
 if __name__ == '__main__':
