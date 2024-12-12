@@ -1,7 +1,6 @@
 from PySide6.QtWidgets import (QMainWindow, QVBoxLayout, QWidget, QLabel, QLineEdit, QPushButton, QFormLayout,
                                QTableWidget, QTableWidgetItem, QMessageBox, QTabWidget, QHBoxLayout, QDialog)
-from genius_interface import ScheduleManager, AccountManager
-from models import Orders
+from genius_interface import ScheduleManager
 
 
 class UserScheduleManager(ScheduleManager):
@@ -43,10 +42,10 @@ class UserAccountManager(QWidget):
         self.orders_columns = orders_controller.get_attr_names()
 
         layout = QVBoxLayout(self)
-        self.init_user_data_section(layout)  # Инициализация секции с данными пользователя
-        self.init_orders_section(layout)     # Инициализация секции с заказами
-        self.init_change(layout)             # Инициализация кнопки редактирования
-        self.init_exit(layout, exit_func)    # Инициализация кнопки выхода
+        self.init_user_data_section(layout)
+        self.init_orders_section(layout)
+        self.init_change(layout)
+        self.init_exit(layout, exit_func)
         self.load_records()
 
     def set_id(self, id):
@@ -103,11 +102,12 @@ class UserAccountManager(QWidget):
                 table.setItem(row, col, item)
 
     def edit_record(self):
-        # Определяем, какая таблица выбрана
         if self.user_data_table.hasFocus():
             selected_table = self.user_data_table
+            controller = self.client_controller
         elif self.orders_table.hasFocus():
             selected_table = self.orders_table
+            controller = self.order_controller
         else:
             QMessageBox.warning(self, "Error", "Please select a table to edit.")
             return
@@ -117,22 +117,22 @@ class UserAccountManager(QWidget):
         if selected_row == -1:
             QMessageBox.warning(self, "Error", "Please select a record to edit.")
             return
-        if self.controller.validate_primary_key_cols(selected_col):
+        if controller.validate_primary_key_cols(selected_col):
             QMessageBox.warning(self, "Error", "You selected a primary key")
             self.load_records()
             return
 
         values = [selected_table.item(selected_row, col).text() for col in range(selected_table.columnCount())]
-        is_valid, error_text = self.controller.validate_record_types(values)
+        is_valid, error_text = controller.validate_record_types(values)
         if not is_valid:
             QMessageBox.warning(self, "Error", error_text)
             self.load_records()
             return
 
-        model = self.controller.get_model(*values)
-        self.controller.update(model)
+        model = controller.get_model(*values)
+        controller.update(model)
         self.load_records()
-        QMessageBox.information(self, "Success", f"{self.controller.table_name} updated successfully!")
+        QMessageBox.information(self, "Success", f"{controller.table_name} updated successfully!")
 
 
 class UserInterface(QMainWindow):
@@ -258,7 +258,7 @@ class UserInterface(QMainWindow):
             QMessageBox.warning(self, "Error", error_text)
             return
 
-        order = Orders(None, *values[1:])
+        order = self.orders_controller.get_model(None, *values[1:])
         self.orders_controller.add(order)
         schedule_record = self.schedule_controller.get_record_by_pk(self.day_input.text(), self.washer_input.text())
         setattr(schedule_record, "hour_" + self.time_input.text(), 1)
