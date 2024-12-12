@@ -74,6 +74,9 @@ class LoginInterface(QMainWindow):
     def register(self):
         login = self.login_edit_register.text()
         password = self.password_edit_register.text()
+        ''' if (login.endswith(".admin")):
+            QMessageBox.warning(self,"Error","Can not register admin")
+            return'''
         if self.auth_controller.check_valid_user(login, password):
             QMessageBox.warning(self, "Error", "User is exists")
             return
