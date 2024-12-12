@@ -102,15 +102,8 @@ class UserAccountManager(QWidget):
                 table.setItem(row, col, item)
 
     def edit_record(self):
-        if self.user_data_table.hasFocus():
-            selected_table = self.user_data_table
-            controller = self.client_controller
-        elif self.orders_table.hasFocus():
-            selected_table = self.orders_table
-            controller = self.order_controller
-        else:
-            QMessageBox.warning(self, "Error", "Please select a table to edit.")
-            return
+        selected_table = self.user_data_table
+        controller = self.client_controller
 
         selected_row = selected_table.currentRow()
         selected_col = selected_table.currentColumn()
